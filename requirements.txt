@@ -25,3 +25,12 @@ numpy
 google-cloud-storage
 google-cloud-secret-manager
 playwright
+
+# LangChain for RAG Pipeline
+langchain
+langchain-text-splitters
+langchain-community
+langchain-openai
+langchain-core
+chromadb
+sentence-transformers
