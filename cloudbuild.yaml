@@ -1,0 +1,22 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-f'
+      - 'docker/Dockerfile.rag'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai50-repo/rag-pipeline:latest'
+      - '.'
+  
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai50-repo/rag-pipeline:latest'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai50-repo/rag-pipeline:latest'
+
+timeout: 1200s  # 20 minutes
+

@@ -1,0 +1,74 @@
+AI50-rag-pipeline/
+│
+├── 📄 README.md                          ✅ Committed
+├── 📄 LICENSE                            ✅ Committed
+├── 📄 CONTRIBUTION_ATTESTATION.txt       ✅ Committed
+├── 📄 requirements.txt                   ✅ Committed
+├── 📄 .gitignore                         ✅ Committed
+├── 📄 cloudbuild.yaml                    ✅ Committed
+│
+├── 📁 docs/                              ✅ Committed
+│   ├── 📄 GCP_DEPLOYMENT_GUIDE.md       ✅ Committed
+│   └── 📄 AIRFLOW_USAGE_GUIDE.md        ✅ Committed
+│
+├── 📁 src/                               ✅ Committed
+│   ├── 📄 models.py                      ✅ Committed
+│   ├── 📄 playwright_scraper.py         ✅ Committed
+│   ├── 📄 scraper_gcp.py                ✅ Committed
+│   ├── 📄 extractor_v4_bi.py           ✅ Committed
+│   ├── 📄 extractor_gcp.py              ✅ Committed
+│   ├── 📄 employee_extractor.py         ✅ Committed
+│   ├── 📄 text_preprocessor.py          ✅ Committed
+│   ├── 📄 github_api.py                ✅ Committed
+│   └── 📁 prompts/                       ✅ Committed
+│       └── 📄 dashboard_system.md       ✅ Committed
+│
+├── 📁 airflow/                           ✅ Committed
+│   └── 📁 dags/                          ✅ Committed
+│       └── 📄 ai50_daily_refresh.py     ✅ Committed
+│
+├── 📁 gcp/                               ✅ Committed
+│   ├── 📄 setup_gcp.sh                  ✅ Committed
+│   ├── 📄 build_and_deploy.sh           ✅ Committed
+│   ├── 📄 setup_composer.sh             ✅ Committed
+│   ├── 📄 Dockerfile.scraper            ✅ Committed
+│   ├── 📄 Dockerfile.extractor          ✅ Committed
+│   ├── 📄 cloudbuild.scraper.yaml      ✅ Committed
+│   └── 📄 cloudbuild.extractor.yaml     ✅ Committed
+│
+├── 📁 docker/                            ✅ Committed
+│   ├── 📄 Dockerfile                    ✅ Committed
+│   ├── 📄 Dockerfile.rag                ✅ Committed
+│   └── 📄 docker-compose.yml            ✅ Committed
+│
+└── 📁 data/                              ✅ Committed (seed only)
+    └── 📄 forbes_ai50_seed.json         ✅ Committed
+
+
+🚫 EXCLUDED FROM GIT:
+─────────────────────
+
+Root:
+├── 📄 Assignment.md                     🚫 Ignored
+├── 📄 Roadmap.md                        🚫 Ignored
+├── 📄 sample_payload.json               🚫 Ignored
+├── 📄 output_structure.md               🚫 Ignored
+├── 📄 EVAL.md                           🚫 Ignored
+└── 📄 PE_Dashboard.md                   🚫 Ignored
+
+docs/:
+└── 📄 PE_Dashboard.md                   🚫 Ignored
+
+data/:
+├── 📁 raw/                              🚫 Ignored (generated)
+├── 📁 structured/                       🚫 Ignored (generated)
+├── 📁 payloads/                         🚫 Ignored (generated)
+├── 📁 dashboards/                       🚫 Ignored (generated)
+├── 📄 sample_dashboard.md                🚫 Ignored
+└── 📄 starter_payload.json              🚫 Ignored
+
+Logs & Unused Files:
+├── 📄 *.log                             🚫 Ignored
+├── 📄 *_log.txt                         🚫 Ignored
+├── 📄 extraction*.txt                   🚫 Ignored
+└── 📄 src/api.py, streamlit_app.py, etc. 🚫 Ignored

@@ -1,10 +1,859 @@
 [
   {
-    "company_name": "PLACEHOLDER AI 1",
-    "website": "https://example.com",
-    "linkedin": "https://www.linkedin.com/company/example/",
-    "hq_city": null,
-    "hq_country": null,
-    "category": null
+    "rank": 1,
+    "company_name": "Abridge",
+    "description": "notetaker for doctors",
+    "funding": "458 M",
+    "founded_year": 2018,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/abridge/?list=ai50",
+    "company_id": "cb8d08ba-1dbb-4078-90bc-7a4fa3161905",
+    "website": "https://abridge.com",
+    "linkedin": "https://www.linkedin.com/company/abridgehq",
+    "categories": [
+      "Healthcare AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 2,
+    "company_name": "Anthropic",
+    "description": "model developer",
+    "funding": "17 B",
+    "founded_year": 2020,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/anthropic/?list=ai50",
+    "company_id": "3dfc89cd-0ca4-4cf4-a7aa-22d7ad09478d",
+    "website": "https://anthropic.com",
+    "linkedin": "https://www.linkedin.com/company/anthropicresearch",
+    "categories": [
+      "Large Language Models",
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 3,
+    "company_name": "Anysphere",
+    "description": "coding tools",
+    "funding": "176 M",
+    "founded_year": 2022,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/anysphere/?list=ai50",
+    "company_id": "6bd457d9-54f4-40e1-9d65-7b43d30c1644",
+    "website": "https://cursor.sh",
+    "linkedin": "https://www.linkedin.com/company/cursorai",
+    "categories": [
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 4,
+    "company_name": "Baseten",
+    "description": "app deployment software",
+    "funding": "135 M",
+    "founded_year": 2019,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/baseten/?list=ai50",
+    "company_id": "c129d603-265e-46cf-8b53-f67c91b21b94",
+    "website": "https://baseten.co",
+    "linkedin": "https://www.linkedin.com/company/baseten",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 5,
+    "company_name": "Captions",
+    "description": "editor",
+    "funding": "100 M",
+    "founded_year": 2021,
+    "hq_city": "New York",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/captions/?list=ai50",
+    "company_id": "568643cf-3874-400a-8dc8-085423ebb92a",
+    "website": "https://captions.ai",
+    "linkedin": "https://www.linkedin.com/company/captionsapp",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 6,
+    "company_name": "Clay",
+    "description": "go-to-market tools",
+    "funding": "104 M",
+    "founded_year": 2017,
+    "hq_city": "New York",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/clay/?list=ai50",
+    "company_id": "5b26ee0a-e5e6-4240-b455-54e906e3e3b4",
+    "website": "https://clay.com",
+    "linkedin": "https://www.linkedin.com/company/grow-with-clay",
+    "categories": [
+      "Sales AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 7,
+    "company_name": "Coactive AI",
+    "description": "labeling software",
+    "funding": "44 M",
+    "founded_year": 2021,
+    "hq_city": "San Jose",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/coactive-ai/?list=ai50",
+    "company_id": "1aa36b12-218d-4610-80be-effc745add78",
+    "website": "https://coactive.ai",
+    "linkedin": "https://www.linkedin.com/company/coactiveai",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 8,
+    "company_name": "Cohere",
+    "description": "model developer",
+    "funding": "1 B",
+    "founded_year": 2019,
+    "hq_city": "Toronto",
+    "hq_country": "Canada",
+    "forbes_url": "https://www.forbes.com/companies/cohere/?list=ai50",
+    "company_id": "7da3124b-f6fb-4a80-a6c4-ddbf13278e37",
+    "website": "https://cohere.com",
+    "linkedin": "https://www.linkedin.com/company/cohere-ai",
+    "categories": [
+      "Large Language Models",
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 9,
+    "company_name": "Crusoe",
+    "description": "infrastructure",
+    "funding": "1.6 B",
+    "founded_year": 2018,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/crusoe/?list=ai50",
+    "company_id": "adae364d-be6e-433d-9392-16c26515dc20",
+    "website": "https://crusoeenergy.com",
+    "linkedin": "https://www.linkedin.com/company/crusoe",
+    "categories": [
+      "AI Infrastructure"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 10,
+    "company_name": "Databricks",
+    "description": "storage and analytics",
+    "funding": "19 B",
+    "founded_year": 2013,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/databricks/?list=ai50",
+    "company_id": "2ab5a3f6-b635-4a60-b912-aa798438538a",
+    "website": "https://databricks.com",
+    "linkedin": "https://www.linkedin.com/company/databricks",
+    "categories": [
+      "Data Analytics"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 11,
+    "company_name": "Decagon",
+    "description": "agents for customer service",
+    "funding": "100 M",
+    "founded_year": 2023,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/decagon/?list=ai50",
+    "company_id": "d62a543b-141c-4329-9e63-9d91663ffe7f",
+    "website": "https://decagon.ai",
+    "linkedin": "https://www.linkedin.com/company/decagon-ai",
+    "categories": [
+      "Customer Service AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 12,
+    "company_name": "DeepL",
+    "description": "translation service",
+    "funding": "420 M",
+    "founded_year": 2017,
+    "hq_city": "Cologne",
+    "hq_country": "Germany",
+    "forbes_url": "https://www.forbes.com/companies/deepl/?list=ai50",
+    "company_id": "3a339109-ef90-4793-b806-ca34186a0a41",
+    "website": "https://deepl.com",
+    "linkedin": "https://www.linkedin.com/company/linkedin-com-company-deepl",
+    "categories": [
+      "Translation"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 13,
+    "company_name": "ElevenLabs",
+    "description": "generation software",
+    "funding": "281 M",
+    "founded_year": 2022,
+    "hq_city": "London",
+    "hq_country": "United Kingdom",
+    "forbes_url": "https://www.forbes.com/companies/elevenlabs/?list=ai50",
+    "company_id": "544f7d83-fcaf-4c59-b862-0b52243cbd71",
+    "website": "https://elevenlabs.io",
+    "linkedin": "https://www.linkedin.com/company/elevenlabsio",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 14,
+    "company_name": "Figure AI",
+    "description": "robots",
+    "funding": "750 M",
+    "founded_year": 2022,
+    "hq_city": "San Jose",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/figure-ai/?list=ai50",
+    "company_id": "84f47db7-600b-48e6-a237-345800c20bb5",
+    "website": "https://figure.ai",
+    "linkedin": "https://www.linkedin.com/company/figure-ai",
+    "categories": [
+      "Robotics"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 15,
+    "company_name": "Fireworks AI",
+    "description": "app development software",
+    "funding": "77 M",
+    "founded_year": 2022,
+    "hq_city": "Redwood City",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/fireworks-ai/?list=ai50",
+    "company_id": "2e6ba757-c557-4fb7-ab74-409aaa5425f5",
+    "website": "https://fireworks.ai",
+    "linkedin": "https://www.linkedin.com/company/fireworks-ai",
+    "categories": [
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 16,
+    "company_name": "Glean",
+    "description": "search engine",
+    "funding": "600 M",
+    "founded_year": 2019,
+    "hq_city": "Palo Alto",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/glean/?list=ai50",
+    "company_id": "892e17a7-eb05-4120-b2f5-2705a73c6bb1",
+    "website": "https://glean.com",
+    "linkedin": "https://www.linkedin.com/company/gleanwork/about",
+    "categories": [
+      "Enterprise Search"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 17,
+    "company_name": "Harvey",
+    "description": "automation software",
+    "funding": "500 M",
+    "founded_year": 2022,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/harvey/?list=ai50",
+    "company_id": "19556f2f-e360-4bad-a82f-daf21e444409",
+    "website": "https://harvey.ai",
+    "linkedin": "https://www.linkedin.com/company/harvey-ai",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 18,
+    "company_name": "Hebbia",
+    "description": "purpose AI for finance and legal",
+    "funding": "160 M",
+    "founded_year": 2020,
+    "hq_city": "New York",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/hebbia/?list=ai50",
+    "company_id": "4aa9b269-5e60-461a-a303-291aea536392",
+    "website": "https://hebbia.ai",
+    "linkedin": "https://www.linkedin.com/company/hebbia",
+    "categories": [
+      "Legal AI",
+      "Finance AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 19,
+    "company_name": "Hugging Face",
+    "description": "library for AI models",
+    "funding": "395 M",
+    "founded_year": 2016,
+    "hq_city": "New York",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/hugging-face/?list=ai50",
+    "company_id": "1387455e-62f7-4922-8f4e-417d35374e44",
+    "website": "https://huggingface.co",
+    "linkedin": "https://www.linkedin.com/company/huggingface",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 20,
+    "company_name": "Lambda",
+    "description": "cloud provider",
+    "funding": "863 M",
+    "founded_year": 2012,
+    "hq_city": "San Jose",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/lambda/?list=ai50",
+    "company_id": "e2cccc4e-416f-416a-a441-f9d84fd908f6",
+    "website": "https://lambdalabs.com",
+    "linkedin": "https://www.linkedin.com/company/lambda-labs",
+    "categories": [
+      "AI Infrastructure"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 21,
+    "company_name": "LangChain",
+    "description": "app development tools",
+    "funding": "35 M",
+    "founded_year": 2023,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/langchain/?list=ai50",
+    "company_id": "410796f4-7863-4607-9035-0cff2c5c4d74",
+    "website": "https://langchain.com",
+    "linkedin": "https://www.linkedin.com/company/langchain",
+    "categories": [
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 22,
+    "company_name": "Luminance",
+    "description": "contract automation",
+    "funding": "165 M",
+    "founded_year": 2015,
+    "hq_city": "Cambridge",
+    "hq_country": "United Kingdom",
+    "forbes_url": "https://www.forbes.com/companies/luminance/?list=ai50",
+    "company_id": "0874dba9-7f8e-4acf-9a90-e810ab801cc5",
+    "website": "https://luminance.com",
+    "linkedin": "https://www.linkedin.com/company/luminancetech",
+    "categories": [
+      "Legal AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 23,
+    "company_name": "Mercor",
+    "description": "hiring platform",
+    "funding": "135 M",
+    "founded_year": 2023,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/mercor/?list=ai50",
+    "company_id": "81be67a2-9917-459c-b0f7-127448a7a655",
+    "website": "https://mercor.com",
+    "linkedin": "https://www.linkedin.com/company/mercor-ai",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 24,
+    "company_name": "Midjourney",
+    "description": "generation service",
+    "funding": "0 M",
+    "founded_year": 2021,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/midjourney/?list=ai50",
+    "company_id": "01c9be1c-815e-49c7-aa6f-fa23368cdf6a",
+    "website": "https://midjourney.com",
+    "linkedin": null,
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 25,
+    "company_name": "Mistral AI",
+    "description": "source AI model developer",
+    "funding": "1.1 B",
+    "founded_year": 2023,
+    "hq_city": "Paris",
+    "hq_country": "France",
+    "forbes_url": "https://www.forbes.com/companies/mistral-ai/?list=ai50",
+    "company_id": "d239aae6-d233-43b2-9314-010476c09b7b",
+    "website": "https://mistral.ai",
+    "linkedin": "https://www.linkedin.com/company/mistralai",
+    "categories": [
+      "Large Language Models",
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 26,
+    "company_name": "Notion",
+    "description": "software",
+    "funding": "330 M",
+    "founded_year": 2013,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/notion/?list=ai50",
+    "company_id": "c0038423-59a2-419a-b588-6f8fa771ce96",
+    "website": "https://notion.so",
+    "linkedin": "https://www.linkedin.com/company/notionhq",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 27,
+    "company_name": "OpenAI",
+    "description": "model developer",
+    "funding": "63.92 B",
+    "founded_year": 2015,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/openai/?list=ai50",
+    "company_id": "443c3e82-9c82-4be7-a507-2c3dc1fb5c52",
+    "website": "https://openai.com",
+    "linkedin": null,
+    "categories": [
+      "Large Language Models",
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 28,
+    "company_name": "OpenEvidence",
+    "description": "for doctors",
+    "funding": "100 M",
+    "founded_year": 2022,
+    "hq_city": "Cambridge",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/openevidence/?list=ai50",
+    "company_id": "ff9e8b12-3d0d-4c13-bf01-0f97a028a566",
+    "website": "https://openevidence.com",
+    "linkedin": null,
+    "categories": [
+      "Healthcare AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 29,
+    "company_name": "Perplexity AI",
+    "description": "search engine",
+    "funding": "900 M",
+    "founded_year": 2022,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/perplexity-ai/?list=ai50",
+    "company_id": "b582c443-2458-410e-901d-f18c595f4a4e",
+    "website": "https://perplexity.ai",
+    "linkedin": null,
+    "categories": [
+      "Enterprise Search"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 30,
+    "company_name": "Photoroom",
+    "description": "editing app",
+    "funding": "64 M",
+    "founded_year": 2019,
+    "hq_city": "Paris",
+    "hq_country": "France",
+    "forbes_url": "https://www.forbes.com/companies/photoroom/?list=ai50",
+    "company_id": "e4212462-aa25-45eb-84fd-d05b8bc5cd48",
+    "website": "https://photoroom.com",
+    "linkedin": "https://www.linkedin.com/company/photoroom",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 31,
+    "company_name": "Pika",
+    "description": "generation service",
+    "funding": "135 M",
+    "founded_year": 2023,
+    "hq_city": "Palo Alto",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/pika/?list=ai50",
+    "company_id": "3ddfa94f-99f6-4b19-a6d2-6764627656d4",
+    "website": "https://pika.art",
+    "linkedin": null,
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 32,
+    "company_name": "Runway",
+    "description": "and image editing software",
+    "funding": "545 M",
+    "founded_year": 2018,
+    "hq_city": "New York",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/runway/?list=ai50",
+    "company_id": "9d07c9f7-72e9-4337-8cb3-5cf9d61ee060",
+    "website": "https://runway.com/",
+    "linkedin": "https://www.linkedin.com/company/runway",
+    "categories": [
+      "Video AI",
+      "Computer Vision"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 33,
+    "company_name": "Sakana AI",
+    "description": "models for science and research",
+    "funding": "244 M",
+    "founded_year": 2023,
+    "hq_city": "Tokyo",
+    "hq_country": "Japan",
+    "forbes_url": "https://www.forbes.com/companies/sakana-ai/?list=ai50",
+    "company_id": "981d8c10-0930-4fc1-bfb7-478b0d58465d",
+    "website": "https://sakana.ai",
+    "linkedin": null,
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 34,
+    "company_name": "SambaNova",
+    "description": "chipmaker",
+    "funding": "1.1 B",
+    "founded_year": 2017,
+    "hq_city": "Palo Alto",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/sambanova/?list=ai50",
+    "company_id": "862714db-e3fe-417c-ab7d-0e1e4cfa02ba",
+    "website": "https://sambanova.ai",
+    "linkedin": "https://www.linkedin.com/company/sambanova-systems",
+    "categories": [
+      "AI Infrastructure"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 35,
+    "company_name": "Scale AI",
+    "description": "labeling and AI infrastructure",
+    "funding": "1.6 B",
+    "founded_year": 2016,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/scale-ai/?list=ai50",
+    "company_id": "7ccd54fd-f1b0-4b26-bbf7-5d323df8895b",
+    "website": "https://scale.com",
+    "linkedin": "https://www.linkedin.com/company/scaleai",
+    "categories": [
+      "AI Infrastructure"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 36,
+    "company_name": "Sierra",
+    "description": "service software",
+    "funding": "285 M",
+    "founded_year": 2023,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/sierra/?list=ai50",
+    "company_id": "806bebe3-4017-4ef7-86fa-f20b644e7ccd",
+    "website": "https://sierra.ai",
+    "linkedin": "https://www.linkedin.com/company/sierra",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 37,
+    "company_name": "Skild AI",
+    "description": "systems for robotics",
+    "funding": "320 M",
+    "founded_year": 2023,
+    "hq_city": "Pittsburgh",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/skild-ai/?list=ai50",
+    "company_id": "d988bc7d-b580-4835-8a06-ef89ded5816b",
+    "website": "https://skild.ai",
+    "linkedin": "https://www.linkedin.com/company/skild-ai",
+    "categories": [
+      "Robotics"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 38,
+    "company_name": "Snorkel AI",
+    "description": "data labelling",
+    "funding": "135 M",
+    "founded_year": 2019,
+    "hq_city": "Redwood City",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/snorkel-ai/?list=ai50",
+    "company_id": "bbcd742d-2129-4ee0-b945-474213ea1a67",
+    "website": "https://snorkel.ai",
+    "linkedin": "https://www.linkedin.com/company/snorkel-ai",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 39,
+    "company_name": "Speak",
+    "description": "language tutor",
+    "funding": "162 M",
+    "founded_year": 2016,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/speak/?list=ai50",
+    "company_id": "4d67d902-d25b-418e-852e-9f9aeafd40df",
+    "website": "https://speak.com",
+    "linkedin": null,
+    "categories": [
+      "Translation"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 40,
+    "company_name": "StackBlitz",
+    "description": "and mobile app development",
+    "funding": "106 M",
+    "founded_year": 2017,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/stackblitz/?list=ai50",
+    "company_id": "6f86b8c3-c6b5-4da5-9980-15e8d6d2a4f0",
+    "website": "https://stackblitz.com",
+    "linkedin": null,
+    "categories": [
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 41,
+    "company_name": "Suno",
+    "description": "and sound generation",
+    "funding": "125 M",
+    "founded_year": 2022,
+    "hq_city": "Cambridge",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/suno/?list=ai50",
+    "company_id": "ce22d98e-b3d8-455c-b0ba-197fa477c2bd",
+    "website": "https://suno.ai",
+    "linkedin": null,
+    "categories": [
+      "Music AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 42,
+    "company_name": "Synthesia",
+    "description": "avatar and video generator",
+    "funding": "330 M",
+    "founded_year": 2017,
+    "hq_city": "London",
+    "hq_country": "United Kingdom",
+    "forbes_url": "https://www.forbes.com/companies/synthesia/?list=ai50",
+    "company_id": "60ac3104-8b55-40a5-8fea-ddb79de91b6e",
+    "website": "https://synthesia.io",
+    "linkedin": "https://www.linkedin.com/company/synthesia-technologies",
+    "categories": [
+      "Video AI"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 43,
+    "company_name": "Thinking Machine Labs",
+    "description": "research company",
+    "funding": "0 M",
+    "founded_year": 2024,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/thinking-machine-labs/?list=ai50",
+    "company_id": "cafb477b-3b83-4454-8e74-3b011a9befe2",
+    "website": "https://thinkingmachinelabs.com",
+    "linkedin": null,
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 44,
+    "company_name": "Together AI",
+    "description": "cloud provider",
+    "funding": "534 M",
+    "founded_year": 2022,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/together-ai/?list=ai50",
+    "company_id": "9e2871ea-c7b3-4db9-9bfb-2aa4581db1a9",
+    "website": "https://together.ai",
+    "linkedin": "https://www.linkedin.com/company/togethercomputer",
+    "categories": [
+      "AI Infrastructure"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 45,
+    "company_name": "Vannevar Labs",
+    "description": "intelligence software",
+    "funding": "92 M",
+    "founded_year": 2019,
+    "hq_city": "Palo Alto",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/vannevar-labs/?list=ai50",
+    "company_id": "62695eb5-2c12-422e-96cc-b66f93e4dc96",
+    "website": "https://vannevarlabs.com",
+    "linkedin": null,
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 46,
+    "company_name": "VAST Data",
+    "description": "data infrastructure software",
+    "funding": "381 M",
+    "founded_year": 2016,
+    "hq_city": "New York",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/vast-data/?list=ai50",
+    "company_id": "d8a8b0a2-227f-4808-8cd0-b4de4376350f",
+    "website": "https://vastdata.com",
+    "linkedin": null,
+    "categories": [
+      "AI Infrastructure"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 47,
+    "company_name": "Windsurf",
+    "description": "coding tool",
+    "funding": "243 M",
+    "founded_year": 2021,
+    "hq_city": "Mountain View",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/windsurf/?list=ai50",
+    "company_id": "2c0babac-fe1b-4974-b04d-4b24b0a8a803",
+    "website": "https://codeium.com/windsurf",
+    "linkedin": "https://www.linkedin.com/company/windsurf/\t",
+    "categories": [
+      "AI Coding"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 48,
+    "company_name": "World Labs",
+    "description": "intelligence",
+    "funding": "292 M",
+    "founded_year": 2024,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/world-labs/?list=ai50",
+    "company_id": "8aa310ef-3abd-43d7-a139-90642c8ffc48",
+    "website": "https://worldlabs.ai",
+    "linkedin": null,
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 49,
+    "company_name": "Writer",
+    "description": "software",
+    "funding": "326 M",
+    "founded_year": 2020,
+    "hq_city": "San Francisco",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/writer/?list=ai50",
+    "company_id": "c8825ed5-d157-4ed1-a3e7-4d3698c66b52",
+    "website": "https://writer.com",
+    "linkedin": "https://www.linkedin.com/company/getwriter",
+    "categories": [
+      "Artificial Intelligence"
+    ],
+    "related_companies": []
+  },
+  {
+    "rank": 50,
+    "company_name": "xAI",
+    "description": "model developer",
+    "funding": "12.13 B",
+    "founded_year": 2023,
+    "hq_city": "Palo Alto",
+    "hq_country": "United States",
+    "forbes_url": "https://www.forbes.com/companies/xai/?list=ai50",
+    "company_id": "2b85253e-4785-4da9-a055-b57d274b1abc",
+    "website": "https://x.ai",
+    "linkedin": null,
+    "categories": [
+      "Large Language Models",
+      "AI Coding"
+    ],
+    "related_companies": []
   }
 ]
