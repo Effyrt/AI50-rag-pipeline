@@ -1,13 +1,16 @@
 """AI50 manual pipeline DAG.
 
-Single-step DAG that, when triggered, runs the Cloud Run scraper job
-followed by the extractor job. Each job now processes all Forbes AI 50
-companies in one execution.
+Hybrid DAG that runs the scraper in Cloud Run Jobs (for web scraping)
+and the extractor in Cloud Functions (for API calls to OpenAI).
+Each component processes all Forbes AI 50 companies.
 """
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.google.cloud.operators.cloud_run import (
     CloudRunExecuteJobOperator,
+)
+from airflow.providers.google.cloud.operators.functions import (
+    CloudFunctionInvokeFunctionOperator,
 )
 
 GCP_PROJECT_ID = "gen-lang-client-0653324487"
@@ -25,7 +28,7 @@ DEFAULT_ARGS = {
 }
 
 with DAG(
-    dag_id="ai50_daily_refresh",
+    dag_id="ai50_structured_dag",
     default_args=DEFAULT_ARGS,
     description="Manually trigger to run scraping + extraction for all 50 companies",
     start_date=datetime(2025, 11, 7),

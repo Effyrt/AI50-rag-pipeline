@@ -6,7 +6,7 @@ import json
 import shutil
 from pathlib import Path
 from google.cloud import storage
-from src.playwright_scraper import PlaywrightScraper
+from .playwright_scraper import PlaywrightScraper
 
 def main():
     """Main entry point for GCP Cloud Run scraping job."""

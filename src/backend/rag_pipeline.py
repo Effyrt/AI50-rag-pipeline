@@ -59,9 +59,19 @@ class RAGPipeline:
         
         # Initialize embeddings (this will download model on first run)
         print(f"Loading embedding model: {embedding_model}")
+
+        # Get HuggingFace token from environment
+        hf_token = os.getenv('HF_TOKEN')
+
+        # Set up model kwargs with token if available
+        model_kwargs = {'device': 'cpu'}
+        if hf_token:
+            model_kwargs['use_auth_token'] = hf_token
+            print("Using HuggingFace authentication token")
+
         self.embeddings = HuggingFaceEmbeddings(
             model_name=embedding_model,
-            model_kwargs={'device': 'cpu'},
+            model_kwargs=model_kwargs,
             encode_kwargs={'normalize_embeddings': True}
         )
         

@@ -7,7 +7,7 @@ import json
 import shutil
 from pathlib import Path
 from google.cloud import storage
-from src.extractor_v4_bi import EnhancedExtractor
+from .extractor_v4_bi import EnhancedExtractor
 
 def main():
     """Main entry point for GCP Cloud Run extraction job."""

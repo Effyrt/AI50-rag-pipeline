@@ -12,15 +12,20 @@ AI50-rag-pipeline/
 │   └── 📄 AIRFLOW_USAGE_GUIDE.md        ✅ Committed
 │
 ├── 📁 src/                               ✅ Committed
-│   ├── 📄 models.py                      ✅ Committed
-│   ├── 📄 playwright_scraper.py         ✅ Committed
-│   ├── 📄 scraper_gcp.py                ✅ Committed
-│   ├── 📄 extractor_v4_bi.py           ✅ Committed
-│   ├── 📄 extractor_gcp.py              ✅ Committed
-│   ├── 📄 employee_extractor.py         ✅ Committed
-│   ├── 📄 text_preprocessor.py          ✅ Committed
-│   ├── 📄 github_api.py                ✅ Committed
-│   └── 📁 prompts/                       ✅ Committed
+│   ├── 📁 backend/                      ✅ Committed
+│   │   ├── 📄 api.py                    ✅ Committed
+│   │   ├── 📄 models.py                 ✅ Committed
+│   │   ├── 📄 rag_pipeline.py           ✅ Committed
+│   │   ├── 📄 structured_pipeline.py    ✅ Committed
+│   │   ├── 📄 extractor_v4_bi.py        ✅ Committed
+│   │   ├── 📄 extractor_gcp.py          ✅ Committed
+│   │   ├── 📄 employee_extractor.py     ✅ Committed
+│   │   ├── 📄 text_preprocessor.py      ✅ Committed
+│   │   ├── 📄 github_api.py             ✅ Committed
+│   │   └── 📄 ... (other backend files)  ✅ Committed
+│   ├── 📁 frontend/                     ✅ Committed
+│   │   └── 📄 streamlit_app.py          ✅ Committed
+│   └── 📁 prompts/                      ✅ Committed
 │       └── 📄 dashboard_system.md       ✅ Committed
 │
 ├── 📁 airflow/                           ✅ Committed

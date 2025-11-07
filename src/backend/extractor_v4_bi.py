@@ -17,10 +17,10 @@ from dotenv import load_dotenv
 
 import instructor
 from openai import OpenAI
-from src.models import Company, Event, Product, Leadership, Snapshot, Visibility, Provenance
-from src.employee_extractor import EmployeeDataExtractor
-from src.text_preprocessor import TextPreprocessor
-from src.github_api import get_github_visibility
+from .models import Company, Event, Product, Leadership, Snapshot, Visibility, Provenance
+from .employee_extractor import EmployeeDataExtractor
+from .text_preprocessor import TextPreprocessor
+from .github_api import get_github_visibility
 
 # Load environment variables
 load_dotenv()

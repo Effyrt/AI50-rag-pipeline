@@ -9,6 +9,7 @@ from datetime import datetime
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent))
 
 from rag_pipeline import RAGPipeline
 

@@ -11,4 +11,4 @@ COPY data /app/data
 EXPOSE 8000
 EXPOSE 8501
 
-CMD ["sh", "-c", "uvicorn src.api:app --host 0.0.0.0 --port 8000 & streamlit run src/streamlit_app.py --server.port 8501 --server.address 0.0.0.0"]
+CMD ["sh", "-c", "uvicorn src.backend.api:app --host 0.0.0.0 --port 8000 & streamlit run src/frontend/streamlit_app.py --server.port 8501 --server.address 0.0.0.0"]

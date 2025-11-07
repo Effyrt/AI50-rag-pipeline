@@ -32,7 +32,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Prepare Playwright browser directory and install binaries
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
 RUN mkdir -p ${PLAYWRIGHT_BROWSERS_PATH}
 RUN python -m playwright install-deps chromium
 RUN python -m playwright install chromium

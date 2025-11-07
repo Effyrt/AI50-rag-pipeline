@@ -34,3 +34,7 @@ langchain-openai
 langchain-core
 chromadb
 sentence-transformers
+
+# Google Cloud Integration
+google-cloud-storage
+google-auth

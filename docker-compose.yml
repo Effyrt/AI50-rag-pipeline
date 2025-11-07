@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+    command: ["python", "-m", "uvicorn", "src.backend.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pe-dashboard
+
+  # Streamlit Frontend
+  frontend:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE=http://api:8000
+    command: ["streamlit", "run", "src/frontend/streamlit_app.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - pe-dashboard
+
+networks:
+  pe-dashboard:
+    driver: bridge
+
+volumes:
+  gcs-data:
+    driver: local
