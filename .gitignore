@@ -208,3 +208,50 @@ __marimo__/
 
 # Project specific
 ROADMAP.MD
+
+# Log files
+*.log
+*_log.txt
+extraction*.txt
+rag_index_build.log
+data/scraper_full_run.log
+
+# Unused Python files (not in production Airflow pipeline)
+src/api.py
+src/streamlit_app.py
+src/structured_pipeline.py
+src/evaluator.py
+src/enrich_company_data.py
+src/scrape_forbes_ai50.py
+src/scrape_linkedin_urls.py
+src/payload_assembler.py
+
+# RAG pipeline files (handled by teammate)
+gcp/deploy_rag_job.sh
+
+# Assignment/reference files (exclude from git)
+Assignment.md
+Roadmap.md
+sample_payload.json
+output_structure.md
+EVAL.md
+PE_Dashboard.md
+docs/PE_Dashboard.md
+LAB0_SUMMARY.md
+*LAB0*.md
+CONTRIBUTION_ATTESTATION.txt
+
+# Markdown files (except essential ones)
+*.md
+!README.md
+!docs/*.md
+
+# Data files (generated artifacts - stored in GCS, not git)
+data/raw/
+data/structured/
+data/payloads/
+data/dashboards/
+data/sample_dashboard.md
+data/starter_payload.json
+# Keep only the seed file
+!data/forbes_ai50_seed.json
