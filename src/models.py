@@ -1,5 +1,5 @@
 from pydantic import BaseModel, HttpUrl
-from typing import List, Optional
+from typing import List, Optional, Literal
 from datetime import date
 
 class Provenance(BaseModel):
@@ -22,6 +22,28 @@ class Company(BaseModel):
     last_disclosed_valuation_usd: Optional[float] = None
     last_round_name: Optional[str] = None
     last_round_date: Optional[date] = None
+    
+    # Business Intelligence fields (extracted from website content)
+    value_proposition: Optional[str] = None
+    product_description: Optional[str] = None
+    target_customer_segments: List[str] = []
+    key_competitors: List[str] = []
+    competitive_differentiation: Optional[str] = None
+    industry_primary: Optional[str] = None
+    industry_tags: List[str] = []
+    revenue_model: Optional[str] = None
+    revenue_streams: List[str] = []
+    primary_customer_type: Optional[str] = None
+    sales_motion: Optional[str] = None
+    gtm_channels: List[str] = []
+    pricing_model: Optional[str] = None
+    pricing_disclosed: bool = False
+    free_tier_available: bool = False
+    free_tier_limitations: Optional[str] = None
+    technology_partnerships: List[str] = []
+    geographic_markets: List[str] = []
+    company_stage: Optional[str] = None
+    
     schema_version: str = "2.0.0"
     as_of: Optional[date] = None
     provenance: List[Provenance] = []
@@ -50,12 +72,15 @@ class Event(BaseModel):
 class Snapshot(BaseModel):
     company_id: str
     as_of: date
-    headcount_total: Optional[int] = None
+    headcount_total: Optional[int] = None  # Total employees
+    headcount_estimate: Optional[str] = None  # e.g., "50-100", "100+", "200-500"
     headcount_growth_pct: Optional[float] = None
-    job_openings_count: Optional[int] = None
+    job_openings_count: Optional[int] = None  # Total open positions
     engineering_openings: Optional[int] = None
     sales_openings: Optional[int] = None
     hiring_focus: List[str] = []  # e.g., "sales","ml","security"
+    office_locations: List[str] = []  # Physical office locations
+    remote_policy: Optional[str] = None  # "Remote-first", "Hybrid", "In-office"
     pricing_tiers: List[str] = []
     active_products: List[str] = []
     geo_presence: List[str] = []
@@ -98,6 +123,9 @@ class Visibility(BaseModel):
     news_mentions_30d: Optional[int] = None
     avg_sentiment: Optional[float] = None
     github_stars: Optional[int] = None
+    github_forks: Optional[int] = None
+    github_contributors: Optional[int] = None
+    github_url: Optional[str] = None
     glassdoor_rating: Optional[float] = None
     schema_version: str = "2.0.0"
     provenance: List[Provenance] = []

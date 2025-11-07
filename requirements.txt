@@ -4,3 +4,24 @@ streamlit==1.38.0
 pydantic==2.9.2
 requests==2.32.3
 python-multipart==0.0.9
+
+# Web scraping
+beautifulsoup4
+lxml
+html2text
+selenium
+webdriver-manager
+
+# LLM & Structured Extraction (Lab 5)
+instructor
+openai
+python-dotenv
+eval-type-backport
+
+# Vector DB & RAG (Lab 7)
+faiss-cpu
+tiktoken
+numpy
+google-cloud-storage
+google-cloud-secret-manager
+playwright
