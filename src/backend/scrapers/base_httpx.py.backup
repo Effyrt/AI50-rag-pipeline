@@ -1,0 +1,224 @@
+"""
+Base scraper with retry logic, rate limiting, and error handling.
+"""
+import logging
+import time
+from abc import ABC, abstractmethod
+from typing import Optional, Dict, Any
+from datetime import datetime
+from urllib.parse import urlparse
+
+import httpx
+from bs4 import BeautifulSoup
+
+from ..config.settings import settings
+from ..core.exceptions import ScrapingError, RateLimitError
+from ..core.retry import retry_with_backoff
+from ..core.telemetry import telemetry
+from .rate_limiter import RateLimiter
+
+logger = logging.getLogger(__name__)
+
+
+class BaseScraper(ABC):
+    """
+    Abstract base scraper with common functionality.
+    
+    Features:
+    - Automatic retry with exponential backoff
+    - Rate limiting per domain
+    - User-agent rotation
+    - Response caching
+    - Error handling and logging
+    """
+    
+    def __init__(
+        self,
+        rate_limiter: Optional[RateLimiter] = None,
+        timeout: int = 30,
+        max_retries: int = 3
+    ):
+        self.rate_limiter = rate_limiter or RateLimiter(default_rate=settings.scraper_rate_limit)
+        self.timeout = timeout
+        self.max_retries = max_retries
+        
+        # HTTP client with connection pooling
+        self.client = httpx.Client(
+            timeout=httpx.Timeout(timeout),
+            follow_redirects=True,
+            headers={
+                "User-Agent": settings.scraper_user_agent,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate, br",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1"
+            }
+        )
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+    
+    def close(self):
+        """Close HTTP client and cleanup resources."""
+        if hasattr(self, 'client'):
+            self.client.close()
+    
+    @retry_with_backoff(
+        max_attempts=3,
+        base_delay=1.0,
+        exceptions=(httpx.HTTPError, ScrapingError)
+    )
+    def fetch_url(
+        self,
+        url: str,
+        method: str = "GET",
+        **kwargs
+    ) -> httpx.Response:
+        """
+        Fetch URL with rate limiting and retry logic.
+        
+        Args:
+            url: URL to fetch
+            method: HTTP method (GET, POST, etc.)
+            **kwargs: Additional arguments to pass to httpx
+            
+        Returns:
+            httpx.Response object
+            
+        Raises:
+            ScrapingError: If request fails after retries
+        """
+        domain = self._extract_domain(url)
+        
+        # Apply rate limiting
+        logger.debug(f"Acquiring rate limit token for {domain}")
+        self.rate_limiter.acquire(domain)
+        
+        # Track request
+        with telemetry.track_duration("http_request", {"domain": domain, "method": method}):
+            try:
+                logger.info(f"Fetching {method} {url}")
+                response = self.client.request(method, url, **kwargs)
+                response.raise_for_status()
+                
+                telemetry.record_metric(
+                    "http_response_size_bytes",
+                    len(response.content),
+                    {"domain": domain}
+                )
+                
+                return response
+            
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    raise RateLimitError(
+                        f"Rate limit exceeded for {url}",
+                        error_code="RATE_LIMIT_429",
+                        details={"url": url, "status_code": 429}
+                    )
+                
+                raise ScrapingError(
+                    f"HTTP {e.response.status_code} error for {url}: {e}",
+                    error_code=f"HTTP_{e.response.status_code}",
+                    details={"url": url, "status_code": e.response.status_code}
+                )
+            
+            except httpx.TimeoutException as e:
+                raise ScrapingError(
+                    f"Timeout fetching {url}: {e}",
+                    error_code="TIMEOUT",
+                    details={"url": url, "timeout": self.timeout}
+                )
+            
+            except httpx.RequestError as e:
+                raise ScrapingError(
+                    f"Request error for {url}: {e}",
+                    error_code="REQUEST_ERROR",
+                    details={"url": url, "error": str(e)}
+                )
+    
+    def parse_html(self, html: str, parser: str = "html.parser") -> BeautifulSoup:
+        """
+        Parse HTML content with BeautifulSoup.
+        
+        Args:
+            html: HTML string
+            parser: Parser to use (html.parser, lxml, html5lib)
+            
+        Returns:
+            BeautifulSoup object
+        """
+        try:
+            return BeautifulSoup(html, parser)
+        except Exception as e:
+            raise ScrapingError(
+                f"Failed to parse HTML: {e}",
+                error_code="PARSE_ERROR",
+                details={"error": str(e)}
+            )
+    
+    def extract_text(self, soup: BeautifulSoup, clean: bool = True) -> str:
+        """
+        Extract text from BeautifulSoup object.
+        
+        Args:
+            soup: BeautifulSoup object
+            clean: Whether to clean whitespace
+            
+        Returns:
+            Extracted text
+        """
+        text = soup.get_text(separator="\n")
+        
+        if clean:
+            # Remove extra whitespace
+            lines = [line.strip() for line in text.splitlines()]
+            text = "\n".join(line for line in lines if line)
+        
+        return text
+    
+    def save_metadata(
+        self,
+        url: str,
+        content_length: int,
+        status_code: int = 200
+    ) -> Dict[str, Any]:
+        """
+        Create metadata dictionary for scraped content.
+        
+        Args:
+            url: Source URL
+            content_length: Size of content in bytes
+            status_code: HTTP status code
+            
+        Returns:
+            Metadata dictionary
+        """
+        return {
+            "source_url": url,
+            "crawled_at": datetime.utcnow().isoformat() + "Z",
+            "content_length_bytes": content_length,
+            "status_code": status_code,
+            "scraper_version": "1.0.0",
+            "user_agent": settings.scraper_user_agent
+        }
+    
+    @staticmethod
+    def _extract_domain(url: str) -> str:
+        """Extract domain from URL."""
+        parsed = urlparse(url)
+        return parsed.netloc or parsed.path
+    
+    @abstractmethod
+    def scrape(self, url: str) -> Dict[str, Any]:
+        """
+        Scrape a URL and return structured data.
+        
+        Must be implemented by subclasses.
+        """
+        pass
