@@ -1,0 +1,23 @@
+steps:
+  # Build the scraper Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/ai50-scraper:latest'
+      - '-f'
+      - 'gcp/Dockerfile.scraper'
+      - '.'
+    timeout: 1200s
+
+  # Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/ai50-scraper:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/ai50-scraper:latest'
+
+timeout: 1800s
+

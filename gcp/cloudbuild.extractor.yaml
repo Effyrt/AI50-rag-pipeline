@@ -1,0 +1,23 @@
+steps:
+  # Build the extractor Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/ai50-extractor:latest'
+      - '-f'
+      - 'gcp/Dockerfile.extractor'
+      - '.'
+    timeout: 1200s
+
+  # Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/ai50-extractor:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/ai50-extractor:latest'
+
+timeout: 1800s
+
