@@ -47,8 +47,8 @@ This repository contains the **RAG (Unstructured) Pipeline** for generating Priv
 
 In `dags/ai50_full_ingest_dag.py`, add a new task:
 
-# Add to DAG
-# Update task dependencies
+#### Add to DAG
+#### Update task dependencies
 t1_load >> t2_scrape >> t3_index >> t4_extract >> t5_report
 
 ---
