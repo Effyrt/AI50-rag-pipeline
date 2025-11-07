@@ -1,6 +1,38 @@
+# Web frameworks
 fastapi==0.115.0
 uvicorn==0.30.6
 streamlit==1.38.0
-pydantic==2.9.2
-requests==2.32.3
 python-multipart==0.0.9
+
+# Data models
+pydantic==2.9.2
+
+# HTTP requests
+requests==2.32.3
+
+# ====== RAG Core Packages ======
+# LangChain - use newer versions with better compatibility
+langchain==0.1.20
+langchain-community==0.0.38
+langchain-core==0.1.52
+
+# Vector Database
+chromadb==0.4.22
+
+# Embeddings
+sentence-transformers==2.5.1
+
+# LLM API
+openai==1.12.0
+
+# Token counting - newer version with prebuilt wheels
+tiktoken==0.6.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# HTML parsing
+beautifulsoup4==4.12.2
+
+# Additional dependencies
+numpy>=1.26.0

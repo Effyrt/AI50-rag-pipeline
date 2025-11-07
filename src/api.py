@@ -1,65 +1,187 @@
+"""
+FastAPI application for PE Dashboard
+Provides RAG and Structured pipeline endpoints
+"""
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
+from pydantic import BaseModel
+from typing import Dict, Optional
 import json
-from .structured_pipeline import load_payload
-from .rag_pipeline import retrieve_context
+from pathlib import Path
+from datetime import datetime
 
-app = FastAPI(title="PE Dashboard API", version="0.1.0")
+# Import pipelines
+from rag_pipeline import RAGPipeline  
+from structured_pipeline import load_payload
 
+# Initialize FastAPI
+app = FastAPI(
+    title="PE Dashboard API",
+    description="Forbes AI 50 Private Equity Dashboard System",
+    version="1.0.0"
+)
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+# Initialize RAG pipeline (singleton)
+rag_pipeline = None
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+def get_rag_pipeline():
+    """Get or create RAG pipeline instance"""
+    global rag_pipeline
+    if rag_pipeline is None:
+        rag_pipeline = RAGPipeline()
+    return rag_pipeline
 
-@app.get("/companies")
-def list_companies():
-    seed_path = DATA_DIR / "forbes_ai50_seed.json"
-    if seed_path.exists():
-        return json.loads(seed_path.read_text())
-    return []
 
-@app.post("/dashboard/structured")
-def dashboard_structured(company_id: str = "00000000-0000-0000-0000-000000000000"):
-    payload = load_payload(company_id)
-    if not payload:
-        raise HTTPException(status_code=404, detail="Payload not found")
+# ============================================================
+# Request/Response Models
+# ============================================================
 
+class DashboardRequest(BaseModel):
+    company_name: str
+    top_k: int = 20
+
+class DashboardResponse(BaseModel):
+    company_name: str
+    pipeline: str
+    dashboard: str
+    generated_at: str
+    retrieved_chunks: Optional[int] = None
+
+
+# ============================================================
+# Health Check & Info Endpoints
+# ============================================================
+
+@app.get("/")
+def read_root():
+    """API health check and information"""
     return {
-        "markdown": (
-            "## Company Overview\n"
-            f"{payload.company_record.legal_name} ({payload.company_record.brand_name})\n\n"
-            "## Business Model and GTM\nNot disclosed.\n\n"
-            "## Funding & Investor Profile\nNot disclosed.\n\n"
-            "## Growth Momentum\nNot disclosed.\n\n"
-            "## Visibility & Market Sentiment\nNot disclosed.\n\n"
-            "## Risks and Challenges\nNot disclosed.\n\n"
-            "## Outlook\nNot disclosed.\n\n"
-            "## Disclosure Gaps\n- Valuation not disclosed.\n"
+        "message": "PE Dashboard API is running",
+        "version": "1.0.0",
+        "status": "operational",
+        "endpoints": {
+            "rag_dashboard": "/dashboard/rag - Generate RAG dashboard",
+            "structured_dashboard": "/dashboard/structured - Generate structured dashboard"
+        }
+    }
+
+
+# ============================================================
+# RAG Pipeline Endpoints (YOUR WORK!)
+# ============================================================
+
+@app.post("/dashboard/rag", response_model=DashboardResponse)
+def generate_rag_dashboard(request: DashboardRequest):
+    """
+    Generate PE dashboard using RAG pipeline (UNSTRUCTURED)
+    
+    Args:
+        request: DashboardRequest with company_name and top_k
+    
+    Returns:
+        Generated dashboard in markdown format
+    """
+    try:
+        rag = get_rag_pipeline()
+        
+        # Generate dashboard
+        dashboard = rag.generate_dashboard(
+            company_name=request.company_name,
+            top_k=request.top_k
         )
+        
+        return DashboardResponse(
+            company_name=request.company_name,
+            pipeline="RAG (Unstructured)",
+            dashboard=dashboard,
+            generated_at=datetime.now().isoformat(),
+            retrieved_chunks=request.top_k
+        )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Dashboard generation error: {str(e)}"
+        )
+
+
+# ============================================================
+# Structured Pipeline Endpoints
+# ============================================================
+
+@app.post("/dashboard/structured", response_model=DashboardResponse)
+def generate_structured_dashboard(request: DashboardRequest):
+    """
+    Generate PE dashboard using structured pipeline
+    
+    Args:
+        request: DashboardRequest with company_name
+    
+    Returns:
+        Generated dashboard in markdown format
+    """
+    try:
+        # Try to load structured payload
+        payload = load_payload(request.company_name)
+        
+        # TODO: member A will implement the actual structured dashboard generation
+        # For now, return a placeholder
+        
+        dashboard = f"""# {request.company_name} Dashboard
+*Generated: {datetime.now().isoformat()}*
+*Pipeline: Structured*
+
+"""
+        
+        return DashboardResponse(
+            company_name=request.company_name,
+            pipeline="Structured",
+            dashboard=dashboard,
+            generated_at=datetime.now().isoformat()
+        )
+        
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Structured data not found for {request.company_name}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error: {str(e)}"
+        )
+
+
+# ============================================================
+# Utility Endpoints
+# ============================================================
+
+@app.get("/test")
+def test_endpoint():
+    """Simple test endpoint to verify API is working"""
+    return {
+        "status": "success",
+        "message": "API is working correctly!",
+        "timestamp": datetime.now().isoformat()
     }
 
-@app.post("/dashboard/rag")
-def dashboard_rag(company_name: str = "ExampleAI"):
-    ctx = retrieve_context(company_name)
-    return {
-        "markdown": (
-            f"## Company Overview\n{company_name} — generated from retrieved context.\n\n"
-            "## Business Model and GTM\nNot disclosed.\n\n"
-            "## Funding & Investor Profile\nNot disclosed.\n\n"
-            "## Growth Momentum\nNot disclosed.\n\n"
-            "## Visibility & Market Sentiment\nNot disclosed.\n\n"
-            "## Risks and Challenges\nNot disclosed.\n\n"
-            "## Outlook\nNot disclosed.\n\n"
-            "## Disclosure Gaps\n- Not disclosed.\n"
-        ),
-        "retrieved": ctx
-    }
+
+if __name__ == "__main__":
+    import uvicorn
+    print("\n" + "="*60)
+    print("Starting PE Dashboard API Server")
+    print("="*60)
+    print("\nRAG Pipeline: Ready ✓")
+    print("\nAPI Documentation: http://localhost:8000/docs")
+    print("="*60 + "\n")
+    
+    uvicorn.run(app, host="0.0.0.0", port=8000)
