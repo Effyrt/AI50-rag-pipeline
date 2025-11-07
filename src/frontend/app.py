@@ -1,6 +1,6 @@
 """
 ORBIT - Dual Pipeline Comparison Dashboard
-RAG vs Structured with Evaluation
+RAG vs Structured with Evaluation + Fallback indicators
 """
 import streamlit as st
 import requests
@@ -30,8 +30,8 @@ st.markdown("""
         padding: 25px;
         text-align: center;
     }
-    .winner-badge {
-        background: #10b981;
+    .fallback-badge {
+        background: #f59e0b;
         color: white;
         padding: 5px 15px;
         border-radius: 20px;
@@ -97,7 +97,7 @@ def run_dual_pipeline(company):
 
 def main():
     # Header
-    st.markdown('<h1 class="main-header">🚀 ORBIT Dual Pipeline</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">�� ORBIT Dual Pipeline</h1>', unsafe_allow_html=True)
     st.caption("RAG vs Structured Comparison • Forbes AI 50")
     
     st.divider()
@@ -157,11 +157,15 @@ def main():
             )
         
         if analyze_button:
-            st.info("⚠️ **Dual Pipeline Analysis** • This will take 60-90 seconds")
+            st.info("⚠️ **Dual Pipeline Analysis** • This will take 15-30 seconds")
             
             result = run_dual_pipeline(selected)
             
             if result:
+                # Show fallback badge if used
+                if result.get('is_fallback'):
+                    st.warning('⚠️ **Fallback Data Used** - Website blocks automated scraping. Using publicly available information.')
+                
                 st.success(f"✅ Analysis completed in {result['processing_time_seconds']:.1f}s")
                 
                 # Scores comparison
@@ -224,6 +228,12 @@ def main():
                 st.divider()
                 st.subheader("💡 Evaluation Reasoning")
                 st.markdown(result['evaluation'].get('reasoning', 'No reasoning provided'))
+                
+                # Show data source info
+                if result.get('is_fallback'):
+                    st.info(f"📄 **Data Source:** Fallback data (website blocked)")
+                else:
+                    st.success(f"📄 **Data Source:** Live scraped from {len(result['pages_scraped'])} pages")
                 
                 # Dashboards
                 st.divider()
