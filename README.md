@@ -259,6 +259,7 @@ python -m src.rag_pipeline
 ## 🔗 Links
 
 - **GitHub Repository**: https://github.com/Effyrt/AI50-rag-pipeline
+- **Project Video Demo**: https://drive.google.com/file/d/188NkhlREF0QHgGaySn_ZsDOnG95bkoVa/view?usp=sharing
 - **GCP Project**: gen-lang-client-0653324487
 
 ## 📄 License
