@@ -6,6 +6,10 @@
 
 Project ORBIT is an automated, reproducible, cloud-hosted system that generates investor dashboards for all 50 Forbes AI 50 companies. The system uses two parallel generation pipelines (RAG and Structured) to extract and analyze company data, then serves dashboards through FastAPI and Streamlit on Google Cloud Platform.
 
+## 📘 Interactive Codelab  
+View the full tutorial here:  
+👉 [Open Google Codelab](https://codelabs-preview.appspot.com/?file_id=https://raw.githubusercontent.com/Effyrt/AI50-rag-pipeline/refs/heads/main/codelabs.md)
+
 ### Key Features
 
 - **Dual Pipeline Architecture**: 
