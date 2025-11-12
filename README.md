@@ -12,7 +12,7 @@ Project ORBIT is an automated, reproducible, cloud-hosted system that generates 
 
 ## 📘 Interactive Codelab  
 View the full tutorial here:  
-👉 [Open Google Codelab](https://codelabs-preview.appspot.com/?file_id=https://raw.githubusercontent.com/Effyrt/AI50-rag-pipeline/refs/heads/main/codelabs.md)
+👉 [Open Google Codelab](https://codelabs-preview.appspot.com/?file_id=https://raw.githubusercontent.com/Effyrt/AI50-rag-pipeline/main/codelabs.md#0)
 
 ### Key Features
 
