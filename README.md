@@ -1,6 +1,10 @@
 # Project ORBIT — PE Dashboard Factory for Forbes AI 50
 
 **Automated Private-Equity Intelligence System**
+summary: AI50 RAG Pipeline Codelab  
+id: ai50-rag-pipeline  
+
+# Project ORBIT — AI50 RAG Pipeline Codelab
 
 ## 📋 Project Overview
 
