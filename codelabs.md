@@ -85,9 +85,10 @@ Project ORBIT uses **two parallel pipelines** for dashboard generation:
 
 ---
 
-## Step 4: Structured Pipeline - 5-Pass Extraction
+## Step 4: Structured Pipeline
 
 **Purpose:** Extract precise, validated data using 5 targeted passes with Pydantic models.
+
 ---
 
 ## Step 5: RAG Pipeline - Vector Indexing
@@ -172,12 +173,6 @@ The company operates through multiple revenue streams...
 ```
 
 **✅ Checkpoint:** Both pipelines generate complete dashboards locally.
-
----
-
-## Step 7: Docker Deployment (Local)
-
-**✅ Checkpoint:** Both services running on ports 8000 and 8501.
 
 ---
 
