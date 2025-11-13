@@ -1,3 +1,7 @@
+summary: AI50-rag-pipeline
+id: AI50-rag-pipeline
+categories: data-engineering
+
 # Project ORBIT: Codelabs Tutorial
 
 ## Overview
