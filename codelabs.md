@@ -35,8 +35,6 @@ cp .env.example .env
 
 ## Step 2: Understanding Dual-Pipeline Architecture
 
-**Duration:** 5 minutes
-
 ### System Overview
 
 Project ORBIT uses **two parallel pipelines** for dashboard generation:
@@ -78,15 +76,6 @@ Project ORBIT uses **two parallel pipelines** for dashboard generation:
 
 **Purpose:** Collect raw data from company websites as the foundation for both pipelines.
 
-```bash
-# Test scraper locally
-python -m src.playwright_scraper
-
-# Check scraped data
-ls data/raw/
-# Expected: HTML files for each company's pages
-```
-
 **What's Happening:**
 - Playwright scrapes: homepage, about, products, careers, blog
 - Footer link detection for comprehensive coverage
@@ -99,67 +88,6 @@ ls data/raw/
 ## Step 4: Structured Pipeline - 5-Pass Extraction
 
 **Purpose:** Extract precise, validated data using 5 targeted passes with Pydantic models.
-
-### 5-Pass Architecture
-
-Each pass focuses on specific data types to reduce LLM confusion:
-
-**Pass 1: Company Basics + Events**
-```json
-{
-  "company_name": "OpenAI",
-  "founded_year": 2015,
-  "headquarters": "San Francisco, CA",
-  "events": [
-    {"type": "funding", "amount": "$10B", "date": "2024-01"}
-  ]
-}
-```
-
-**Pass 2: Products + Leadership**
-```json
-{
-  "products": ["ChatGPT", "GPT-4 API", "DALL-E"],
-  "leadership": [
-    {"name": "Sam Altman", "title": "CEO"}
-  ]
-}
-```
-
-**Pass 3: GitHub Visibility**
-```json
-{
-  "github_url": "https://github.com/openai",
-  "stars": 45000,
-  "repos": 82
-}
-```
-
-**Pass 4: Business Intelligence**
-```json
-{
-  "value_proposition": "Democratizing AI access",
-  "competitors": ["Anthropic", "Google DeepMind"],
-  "go_to_market": "API-first + Enterprise"
-}
-```
-
-**Pass 5: Employee & Hiring**
-```json
-{
-  "employee_count": "500+",
-  "hiring_status": "active",
-  "open_positions": 42
-}
-```
-
-**Why 5 Passes?**
-- Each pass has focused context → higher accuracy
-- Pydantic validation ensures data quality
-- Parallel execution possible for speed
-
-**✅ Checkpoint:** Structured JSON files created in `data/structured/`.
-
 ---
 
 ## Step 5: RAG Pipeline - Vector Indexing
@@ -335,8 +263,6 @@ structured/  vector-index/
 
 ## Step 12: Pipeline Evaluation & Comparison
 
-**Duration:** 10 minutes
-
 ### Side-by-Side Comparison
 
 Generate dashboards for the same company using both pipelines:
@@ -375,20 +301,6 @@ becoming one of the fastest-growing consumer applications...
 - Each pass targets specific data types
 - Pass 3 (GitHub) only extracts tech metrics → no confusion with financial data
 - Pass 4 (BI) focuses on strategy → cleaner competitive analysis
-
-**Example:**
-```python
-# Pass 1 Model (Pydantic)
-class CompanyBasics(BaseModel):
-    company_name: str
-    founded_year: int
-    funding_total: Optional[float]  # Validated as number
-    
-# Pass 4 Model
-class BusinessIntelligence(BaseModel):
-    value_proposition: str
-    competitors: List[str]  # Validated as list
-```
 
 #### 2. **Data Validation & Type Safety**
 - **Structured:** Pydantic enforces types
@@ -466,9 +378,9 @@ All 50 dashboards have:
 ## Step 13: Monitoring and Maintenance
 
 **Automated Schedule:**
-- DAG runs daily at 3 AM UTC
+- DAG runs daily
 - Scraper → Extractor (Structured) → RAG Index Builder → Payloads
-- Fresh dashboards available by 4 AM UTC
+- Fresh dashboards available 
 
 ---
 
