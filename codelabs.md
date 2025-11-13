@@ -87,7 +87,16 @@ Project ORBIT uses **two parallel pipelines** for dashboard generation:
 
 ## Step 4: Structured Pipeline
 
-**Purpose:** Extract precise, validated data using 5 targeted passes with Pydantic models.
+**Purpose:**
+Extract precise, validated, and schema-aligned data using five sequential extraction passes powered by Pydantic models.
+
+**Key Concepts:**
+
+Each pass focuses on a specific data dimension (e.g., Company Info, Funding, Product, Metrics, Market).
+
+Pydantic ensures type validation and schema consistency, preventing malformed outputs.
+
+Ideal for structured or semi-structured documents such as profiles, articles, and reports.
 
 ---
 
