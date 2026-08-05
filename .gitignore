@@ -247,9 +247,8 @@ CONTRIBUTION_ATTESTATION.txt
 !docs/*.md
 
 # Internal planning docs (kept local, not part of the submitted repo)
-# These must come after !docs/*.md — the last matching rule wins.
+# This must come after !docs/*.md — the last matching rule wins.
 docs/PROJECT_STATUS_AND_BACKLOG.md
-docs/ROADMAP.md
 
 # Data files (generated artifacts - stored in GCS, not git)
 data/raw/
