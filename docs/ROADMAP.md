@@ -633,25 +633,42 @@ Performed end-to-end by whoever wrote **least** of the code:
 
 ## Progress tracker
 
+Last updated: 2026-08-05.
+
 ```
-Phase 1  Graded deliverables    [ ][ ][ ][ ][ ][ ]     0/6
-Phase 2  Pipeline runs          [ ][ ][ ][ ][ ]        0/5
-Phase 3  Docs true              [ ][ ][ ][ ][ ]        0/5
-Phase 4  Correctness            [ ][ ][ ][ ][ ][ ]     0/6
-Phase 5  Security               [ ][ ][ ][ ]           0/4
-Phase 6  Cleanup & handover     [ ][ ][ ]              0/3
+Phase 1  Graded deliverables    [~][ ][ ][x][x][ ]     2/6  (+2 partial)
+Phase 2  Pipeline runs          [x][x][x][x][ ]        4/5
+Phase 3  Docs true              [x][x][x][x][x]        5/5
+Phase 4  Correctness            [x][x][x][x][x][ ]     5/6
+Phase 5  Security               [x][x][ ][x]           3/4
+Phase 6  Cleanup & handover     [x][x][~]              2/3  (+1 partial)
                                                   ─────────
-                                                  0/29 tasks
+                                                  21/29 tasks
 ```
 
-| Metric | Baseline (`648193e`) | Target |
+Legend: `x` complete · `~` harness/scaffolding built but blocked on credentials · ` ` not started
+
+**Blocked on credentials or a live environment** (cannot be completed from a dev container):
+
+| Task | What is done | What is blocked |
 |---|---|---|
-| Companies scored in `EVAL.md` | **0** | **≥ 5** |
-| Graded deliverables complete | 6 of 8 | **8 of 8** |
-| DAGs that can succeed as deployed | 1 of 3 | **all** |
-| Documented claims contradicting code | 10 | **0** |
-| Silent-fallback code paths | 3 | **0** |
-| Tests | 0 | passing in CI |
+| T-1.1 | Harness built, unit-tested, `--dry-run` verified | Real generation needs `OPENAI_API_KEY` |
+| T-1.2 | `EVAL.md` restructured with rubric + instructions | Scoring needs an API key and scraped `data/raw/` |
+| T-1.3 | — | Depends on T-1.2 |
+| T-1.6 | Decision documented; local compose verified | `gcloud run deploy` needs GCP credentials |
+| T-2.5 | — | Needs a live Airflow run |
+| T-4.6 | — | Needs a live GCS side-file store to verify against |
+| T-5.3 | — | Needs GCP IAM access |
+| T-6.3 | Suite + harness verified locally | Full walkthrough needs Docker and credentials |
+
+| Metric | Baseline (`648193e`) | Now | Target |
+|---|---|---|---|
+| Companies scored in `EVAL.md` | 0 | 0 | **≥ 5** |
+| Graded deliverables complete | 6 of 8 | 7 of 8 | **8 of 8** |
+| DAGs that can succeed as deployed | 1 of 3 | 3 of 3 | **all** |
+| Documented claims contradicting code | 10 | 0 | **0** |
+| Silent-fallback code paths | 3 | 0 | **0** |
+| Automated tests | 0 | **68 passing** | passing in CI |
 
 Update the tracker at each phase gate.
 

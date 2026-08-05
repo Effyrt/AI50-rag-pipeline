@@ -1,40 +1,47 @@
+# Project ORBIT — runtime dependencies
+#
+# Versions are pinned so builds are reproducible. Dev/test-only packages live in
+# requirements-dev.txt so they are never pushed into Cloud Composer, which installs
+# this file wholesale via --update-pypi-packages-from-file.
+
+# ── API & UI ───────────────────────────────────────────────────────────────────
 fastapi==0.115.0
 uvicorn==0.30.6
 streamlit==1.38.0
 pydantic==2.9.2
 requests==2.32.3
 python-multipart==0.0.9
+pandas==2.2.3
 
-# Web scraping
-beautifulsoup4
-lxml
-html2text
-selenium
-webdriver-manager
+# ── Web scraping ───────────────────────────────────────────────────────────────
+# Playwright drives the main company scraper. Selenium is used by the Forbes list
+# scraper and the enrichment scripts (scrape_forbes_ai50.py, scrape_linkedin_urls.py,
+# enrich_company_data.py), so both stacks are genuinely required.
+playwright==1.47.0
+beautifulsoup4==4.12.3
+lxml==5.3.0                      # BeautifulSoup(html, 'lxml') parser backend
+selenium==4.25.0
+webdriver-manager==4.0.2
 
-# LLM & Structured Extraction (Lab 5)
-instructor
-openai
-python-dotenv
-eval-type-backport
+# ── LLM & structured extraction (Lab 5) ────────────────────────────────────────
+openai==1.51.0
+instructor==1.5.2
+python-dotenv==1.0.1
+eval-type-backport==0.2.0
 
-# Vector DB & RAG (Lab 7)
-faiss-cpu
-tiktoken
-numpy
-google-cloud-storage
-google-cloud-secret-manager
-playwright
+# ── Vector DB & RAG (Labs 4 and 7) ─────────────────────────────────────────────
+# The vector store is Chroma, not FAISS. faiss-cpu and tiktoken were previously
+# listed but are not imported anywhere in the codebase.
+langchain==0.3.3
+langchain-core==0.3.10
+langchain-community==0.3.2
+langchain-openai==0.2.2
+langchain-text-splitters==0.3.0
+chromadb==0.5.11
+sentence-transformers==3.1.1
+numpy==1.26.4
 
-# LangChain for RAG Pipeline
-langchain
-langchain-text-splitters
-langchain-community
-langchain-openai
-langchain-core
-chromadb
-sentence-transformers
-
-# Google Cloud Integration
-google-cloud-storage
-google-auth
+# ── Google Cloud ───────────────────────────────────────────────────────────────
+google-cloud-storage==2.18.2
+google-cloud-secret-manager==2.20.2
+google-auth==2.35.0

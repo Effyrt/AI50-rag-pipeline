@@ -20,7 +20,7 @@ Codelab Document:
 
 - **Dual Pipeline Architecture**: 
   - **Structured Pipeline**: Uses Pydantic + Instructor for precise data extraction
-  - **RAG Pipeline**: Uses vector database (FAISS) for retrieval-augmented generation
+  - **RAG Pipeline**: Uses a Chroma vector database with local sentence-transformers embeddings for retrieval-augmented generation
   
 - **Automated Data Ingestion**: 
   - Web scraping with Playwright (homepage, about, products, careers, blog, etc.)
@@ -117,10 +117,10 @@ cp .env.example .env  # Create .env file
 
 ```bash
 # Start FastAPI backend
-uvicorn src.api:app --reload
+uvicorn src.backend.api:app --reload
 
 # In another terminal, start Streamlit frontend
-streamlit run src/streamlit_app.py
+streamlit run src/frontend/streamlit_app.py
 ```
 
 - FastAPI: http://localhost:8000
@@ -143,7 +143,8 @@ docker compose up --build
    ./setup_gcp.sh
    ```
    This creates:
-   - GCS buckets (raw-data, structured-data, payloads, vector-index)
+   - GCS buckets: `raw-data`, `structured-data`, `dashboards` (payloads are stored
+     under `structured-data/payloads/`; the vector index is built inside the RAG job)
    - Secret Manager for API keys
    - Service accounts with proper IAM roles
 
@@ -182,7 +183,7 @@ docker compose up --build
 
 - **GCP Deployment Guide**: See `docs/GCP_DEPLOYMENT_GUIDE.md`
 - **Airflow Usage Guide**: See `docs/AIRFLOW_USAGE_GUIDE.md`
-- **RAG Pipeline Guide**: See `TEAMMATE_RAG_GUIDE.md`
+- **Remediation Roadmap**: See `docs/ROADMAP.md`
 
 ## 📊 Data Flow
 
@@ -199,49 +200,97 @@ docker compose up --build
 
 ```
 AI50-rag-pipeline/
-├── src/                    # Source code
-│   ├── playwright_scraper.py      # Web scraper (Playwright)
-│   ├── scraper_gcp.py            # GCP scraper entry point
-│   ├── extractor_v4_bi.py        # 5-pass structured extractor
-│   ├── extractor_gcp.py          # GCP extractor entry point
-│   ├── rag_pipeline.py            # RAG pipeline (teammate)
-│   ├── models.py                  # Pydantic data models
-│   ├── api.py                    # FastAPI endpoints
-│   └── streamlit_app.py          # Streamlit UI
-├── airflow/dags/           # Airflow DAGs
-│   └── ai50_daily_refresh.py
-├── gcp/                    # GCP deployment scripts
+├── src/
+│   ├── backend/                       # FastAPI app, pipelines, extractors
+│   │   ├── api.py                     # FastAPI endpoints
+│   │   ├── models.py                  # Pydantic data models
+│   │   ├── rag_pipeline.py            # RAG pipeline (Chroma + local embeddings)
+│   │   ├── structured_pipeline.py     # Payload loading
+│   │   ├── evaluator.py               # Lab 9 rubric scoring
+│   │   ├── extractor_v4_bi.py         # 5-pass structured extractor
+│   │   ├── extractor_gcp.py           # GCP extractor entry point
+│   │   ├── playwright_scraper.py      # Web scraper (Playwright)
+│   │   ├── scraper_gcp.py             # GCP scraper entry point
+│   │   ├── payload_assembler.py       # Lab 6 payload assembly
+│   │   └── github_api.py              # GitHub visibility metrics
+│   ├── frontend/
+│   │   └── streamlit_app.py           # Streamlit UI
+│   └── prompts/
+│       └── dashboard_system.md        # 8-section dashboard prompt
+├── airflow/dags/                      # Airflow DAGs (single source of truth)
+│   ├── ai50_full_ingest_dag.py        # @once full load
+│   ├── ai50_daily_refresh_dag.py      # 0 3 * * * daily refresh
+│   └── ai50_structured_dag.py         # manual scrape + extract
+├── scripts/
+│   └── run_eval.py                    # Lab 9 evaluation runner
+├── tests/                             # pytest suite (no credentials required)
+├── gcp/                               # GCP deployment scripts
 │   ├── setup_gcp.sh
 │   ├── build_and_deploy.sh
 │   └── setup_composer.sh
-├── docker/                 # Docker configurations
-├── docs/                   # Documentation
-└── data/                   # Data files (seed only)
+├── docker/
+│   ├── docker-compose.airflow.yml     # local Airflow
+│   └── Dockerfile
+├── docs/
+│   ├── ROADMAP.md                     # remediation roadmap
+│   ├── GCP_DEPLOYMENT_GUIDE.md
+│   └── AIRFLOW_USAGE_GUIDE.md
+├── EVAL.md                            # Lab 9 RAG vs Structured comparison
+└── data/                              # Seed only; generated data lives in GCS
     └── forbes_ai50_seed.json
 ```
 
 ## 🧪 Testing
 
-### Test Scraping
+### Automated test suite
+
+Runs with **no** `OPENAI_API_KEY` and **no** GCP credentials — all external boundaries
+are mocked, so it is safe to run anywhere and usable in CI.
+
 ```bash
-python -m src.scraper_gcp
+pip install -r requirements-dev.txt
+pytest tests/ -v
 ```
 
-### Test Extraction
+Covers: the seed list contract (all 50 companies), Pydantic model validation, every API
+route, the Lab 9 rubric scoring, and DAG structure (including a guard against importing
+`src/backend` from a DAG, which cannot resolve in Cloud Composer).
+
+### Verify DAGs parse
+
 ```bash
-python -m src.extractor_gcp
+docker compose -f docker/docker-compose.airflow.yml up -d
+docker compose -f docker/docker-compose.airflow.yml exec airflow \
+  airflow dags list-import-errors     # must be empty
 ```
 
-### Test RAG Pipeline
+### Evaluation harness (Lab 9)
+
 ```bash
-python -m src.rag_pipeline
+# Exercise the scoring path with no API calls
+python scripts/run_eval.py --companies ExampleCo --dry-run
+
+# Real run — needs OPENAI_API_KEY and scraped data under data/raw/
+python scripts/run_eval.py --companies anthropic,databricks,abridge,hebbia,xai \
+                           --scorer "<your name>"
+```
+
+### Pipeline smoke tests
+
+Each requires credentials and writes to GCS:
+
+```bash
+python -m src.backend.scraper_gcp      # scraping
+python -m src.backend.extractor_gcp    # 5-pass extraction
+python -m src.backend.rag_pipeline     # RAG indexing + generation
 ```
 
 ## 📝 Key Technologies
 
 - **Web Scraping**: Playwright, BeautifulSoup4
-- **LLM & Extraction**: OpenAI GPT-4o-mini, Instructor, Pydantic
-- **Vector DB**: FAISS
+- **LLM & Extraction**: OpenAI GPT-4o-mini (Instructor + Pydantic for structured extraction)
+- **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2` (384-dim, runs locally, no API cost)
+- **Vector DB**: Chroma (persistent, local)
 - **Orchestration**: Apache Airflow (Cloud Composer)
 - **Cloud Platform**: Google Cloud Platform (Cloud Run, GCS, Cloud Composer)
 - **API**: FastAPI

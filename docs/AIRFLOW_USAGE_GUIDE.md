@@ -2,41 +2,87 @@
 
 ## Quick Access
 
-**Airflow UI**: https://7945412f28754a46b762144896412ac1-dot-us-central1.composer.googleusercontent.com
+**Cloud Composer**: obtain the current UI URL from the environment rather than a
+hard-coded link, which goes stale as soon as the environment is recreated:
 
-**Login**: Use your Google account (rayuduhemanth6@gmail.com)
+```bash
+gcloud composer environments describe ai50-composer \
+  --location=us-central1 \
+  --format="get(config.airflowUri)"
+```
+
+**Local Airflow** (no Composer environment required):
+
+```bash
+docker compose -f docker/docker-compose.airflow.yml up -d
+# UI: http://localhost:8080  (admin / admin)
+```
 
 ---
 
-## The Only DAG You Need
+## Execution model
 
-### `ai50_daily_refresh`
-- **What it does**: Runs scraping **and** extraction for **all 50 companies** in one shot.
-- **How it works**:
-  1. Executes the `ai50-scraper` Cloud Run Job
-     - Scrapes 10 page types per company (homepage, about, product, careers, blog, pricing, customers, partners, press, team)
-     - Saves HTML and cleaned text files to GCS raw-data bucket
-  2. Executes the `ai50-extractor` Cloud Run Job
-     - Loads scraped data
-     - Runs the 5-pass extraction (Company, Events, Products, Leadership, BI, Employees)
-     - Saves structured JSON to GCS structured-data bucket
-- **Schedule**: `schedule_interval=None` (manual trigger only)
-- **Typical runtime**: ~35-45 minutes end-to-end (depends on site speed and OpenAI latency)
+All heavy work runs in **Cloud Run Jobs**, not in the Airflow worker. Airflow only
+coordinates and verifies. This matters: the DAGs previously ran Playwright and
+sentence-transformers in-process, which both risked exhausting the worker and depended
+on `src/backend` modules that are never uploaded to the Composer DAGs bucket.
+
+Only `airflow/dags/` is uploaded to Composer, so a DAG that imports from `src/backend`
+will fail at parse time. `tests/test_dags.py` enforces this.
+
+---
+
+## The DAGs
+
+### `ai50_full_ingest_dag` — initial full load (Lab 2)
+- **Schedule**: `@once`
+- **Tasks**: `load_company_list` → `scrape_company_pages` → `store_raw_to_cloud`
+  → `build_rag_index` → `generate_report`
+- Scrapes 10 page types per company (homepage, about, product, careers, blog, pricing,
+  customers, partners, press, team) into the GCS raw-data bucket, then builds the vector
+  index. `store_raw_to_cloud` verifies per company and logs anything missing.
+
+### `ai50_daily_refresh_dag` — daily delta refresh (Lab 3)
+- **Schedule**: `0 3 * * *` (03:00 UTC daily)
+- **Tasks**: `load_company_list` → `refresh_key_pages` → `extract_structured`
+  → `update_vector_db` → `log_completion`
+- Re-scrapes only the pages that change often (About, Careers, Blog) into a dated
+  per-run subfolder, so the full-load run is never overwritten. `log_completion`
+  records per-company success or failure.
+- To stop it running daily in a deployed environment, **pause the DAG in the UI** — do
+  not edit the schedule, which is a graded requirement.
+
+### `ai50_structured_dag` — manual scrape + extract
+- **Schedule**: `None` (manual trigger only)
+- Convenience DAG for running scraping and extraction on demand.
 
 ```
 Trigger DAG → Cloud Run scraper → Raw data in GCS → Cloud Run extractor → Structured JSON in GCS
 ```
 
+**Typical runtime**: ~35-45 minutes end-to-end, depending on site speed and OpenAI latency.
+
 ---
 
-## How to Run the DAG Manually (Daily)
+## Verifying the DAGs parse
+
+The check that matters before any deployment:
+
+```bash
+docker compose -f docker/docker-compose.airflow.yml exec airflow \
+  airflow dags list-import-errors     # must be empty
+```
+
+---
+
+## How to Run a DAG Manually
 
 1. **Open the Airflow UI**
-   - Go to https://7945412f28754a46b762144896412ac1-dot-us-central1.composer.googleusercontent.com
-   - Sign in with your Google account
+   - Composer: use the `airflowUri` from the command at the top of this guide
+   - Local: http://localhost:8080
 
 2. **Enable the DAG (if disabled)**
-   - Find `ai50_daily_refresh` in the DAG list
+   - Find `ai50_daily_refresh_dag` in the DAG list
    - Click the toggle switch on the left so it turns **ON**
 
 3. **Trigger the DAG**
@@ -46,9 +92,8 @@ Trigger DAG → Cloud Run scraper → Raw data in GCS → Cloud Run extractor �
 
 4. **Monitor the run**
    - Click on the DAG name to open the details page
-   - Graph view will show two tasks:
-     - `scrape_all_companies`
-     - `extract_all_companies`
+   - Graph view shows the task chain for the DAG you triggered
+     (see "The DAGs" above for the task names)
    - Colors:
      - 🟡 Yellow = running
      - ✅ Green = success
@@ -93,7 +138,8 @@ Bucket: gs://gen-lang-client-0653324487-structured-data/
 ```
 
 Each JSON includes:
-- `company`: Legal name, HQ, funding, BI fields (value prop, competitors, etc.)
+- `company_record`: Legal name, HQ, funding, BI fields (value prop, competitors, etc.)
+  (the key is `company_record`, matching the `Payload` model in `src/backend/models.py`)
 - `events`: Funding rounds, partnerships, launches
 - `products`: Name, summary, pricing model, tier details when available
 - `leadership`: Founders and executives with roles
@@ -142,10 +188,10 @@ Typical issues:
 
 ## Recap
 
-- **You only need one DAG**: `ai50_daily_refresh`
-- **Trigger manually whenever you want fresh data**
-- **No schedule** (runs only when you click)
-- **Output** stored automatically in the two GCS buckets
+- **Two required DAGs**: `ai50_full_ingest_dag` (@once) and `ai50_daily_refresh_dag` (0 3 * * *)
+- **`ai50_structured_dag`** is available for ad-hoc manual runs
+- **Heavy work runs in Cloud Run Jobs**, never in the Airflow worker
+- **Output** is written to the GCS raw-data and structured-data buckets
 
 That’s it! 🚀
 

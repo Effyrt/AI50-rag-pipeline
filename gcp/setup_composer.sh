@@ -16,18 +16,29 @@ echo "=================================================="
 echo "Creating Cloud Composer environment..."
 echo "⏳ This will take 20-30 minutes..."
 
-gcloud composer environments create $COMPOSER_ENV \
-  --location=$REGION \
-  --python-version=3.11 \
-  --image-version=composer-2.9.0-airflow-2.9.3 \
-  --project=$PROJECT_ID \
-  --environment-size=small \
-  --scheduler-cpu=2 \
-  --scheduler-memory=4 \
-  --scheduler-storage=5 \
-  --scheduler-count=1 \
-  --web-server-machine-type=composer-n1-webserver-2 \
-  || echo "Composer environment already exists"
+# NOTE: --python-version and --web-server-machine-type are Cloud Composer *1* flags and
+# are rejected by a Composer 2 image version. They were previously masked by
+# `|| echo "already exists"`, so a failed create looked like a successful one. Composer 2
+# derives the Python version from --image-version, and web server sizing uses
+# --web-server-cpu / --web-server-memory / --web-server-storage.
+if gcloud composer environments describe $COMPOSER_ENV \
+     --location=$REGION --project=$PROJECT_ID >/dev/null 2>&1; then
+  echo "Composer environment $COMPOSER_ENV already exists, skipping create"
+else
+  gcloud composer environments create $COMPOSER_ENV \
+    --location=$REGION \
+    --image-version=composer-2.9.0-airflow-2.9.3 \
+    --project=$PROJECT_ID \
+    --environment-size=small \
+    --scheduler-cpu=2 \
+    --scheduler-memory=4 \
+    --scheduler-storage=5 \
+    --scheduler-count=1 \
+    --web-server-cpu=1 \
+    --web-server-memory=2 \
+    --web-server-storage=1 \
+    || { echo "FATAL: failed to create Composer environment" >&2; exit 1; }
+fi
 
 echo ""
 echo "Installing Python packages..."

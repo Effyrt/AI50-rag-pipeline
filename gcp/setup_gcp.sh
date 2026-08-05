@@ -47,8 +47,22 @@ gcloud services enable \
 # Create GCS buckets
 echo "Creating GCS buckets..."
 
+# Create a bucket only if it does not already exist. The previous
+# `gsutil mb ... 2>/dev/null || echo "already exists"` form swallowed permission and
+# quota errors as well as genuine "already exists", so a failed run looked successful.
+make_bucket() {
+  local bucket="$1"
+  if gsutil ls -b "gs://$bucket/" >/dev/null 2>&1; then
+    echo "  → bucket $bucket already exists"
+  else
+    echo "  → creating bucket $bucket"
+    gsutil mb -p "$PROJECT_ID" -c STANDARD -l "$REGION" -b on "gs://$bucket/" \
+      || { echo "FATAL: failed to create bucket $bucket" >&2; exit 1; }
+  fi
+}
+
 # Raw data bucket (for scraped HTML/text)
-gsutil mb -p $PROJECT_ID -c STANDARD -l $REGION -b on gs://$RAW_BUCKET/ 2>/dev/null || echo "Bucket $RAW_BUCKET already exists"
+make_bucket "$RAW_BUCKET"
 gsutil lifecycle set - gs://$RAW_BUCKET/ <<EOF
 {
   "lifecycle": {
@@ -63,12 +77,13 @@ gsutil lifecycle set - gs://$RAW_BUCKET/ <<EOF
 EOF
 
 # Structured data bucket (for extracted JSON)
-gsutil mb -p $PROJECT_ID -c STANDARD -l $REGION -b on gs://$STRUCTURED_BUCKET/ 2>/dev/null || echo "Bucket $STRUCTURED_BUCKET already exists"
+make_bucket "$STRUCTURED_BUCKET"
 
 # Dashboard bucket (for generated dashboards)
-gsutil mb -p $PROJECT_ID -c STANDARD -l $REGION -b on gs://$DASHBOARD_BUCKET/ 2>/dev/null || echo "Bucket $DASHBOARD_BUCKET already exists"
-gsutil web set -m index.html -e 404.html gs://$DASHBOARD_BUCKET/
-gsutil iam ch allUsers:objectViewer gs://$DASHBOARD_BUCKET/
+# NOTE: deliberately NOT public. Generated dashboards are served through the
+# authenticated API (or signed URLs); granting allUsers:objectViewer here would
+# publish every generated dashboard to the open internet.
+make_bucket "$DASHBOARD_BUCKET"
 
 # Create Secret Manager secret for OpenAI API key
 echo "Setting up Secret Manager..."
