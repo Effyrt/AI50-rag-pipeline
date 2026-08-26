@@ -1,0 +1,37 @@
+# FastAPI backend dependencies.
+#
+# Excludes the scraping stack (playwright, selenium, webdriver-manager, lxml,
+# beautifulsoup4) - those belong to the scraper/extractor Cloud Run Jobs, not to the
+# API service, which never scrapes.
+#
+# Torch is installed from PyPI's CPU-only index in Dockerfile.api rather than being
+# pinned here, because the default CUDA wheels add roughly 2 GB to the image for GPU
+# support that Cloud Run does not provide.
+
+# ── API ────────────────────────────────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn==0.30.6
+pydantic==2.9.2
+requests==2.32.3
+python-multipart==0.0.9
+
+# ── LLM ────────────────────────────────────────────────────────────────────────
+openai==1.51.0
+instructor==1.5.2
+python-dotenv==1.0.1
+eval-type-backport==0.2.0
+
+# ── Vector store & RAG ─────────────────────────────────────────────────────────
+langchain==0.3.3
+langchain-core==0.3.10
+langchain-community==0.3.2
+langchain-openai==0.2.2
+langchain-text-splitters==0.3.0
+chromadb==0.5.11
+sentence-transformers==3.1.1
+numpy==1.26.4
+
+# ── Google Cloud ───────────────────────────────────────────────────────────────
+google-cloud-storage==2.18.2
+google-cloud-secret-manager==2.20.2
+google-auth==2.35.0

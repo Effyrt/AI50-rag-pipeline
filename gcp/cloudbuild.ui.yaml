@@ -1,0 +1,21 @@
+steps:
+  # Build the Streamlit frontend image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/ai50-ui:latest'
+      - '-f'
+      - 'docker/Dockerfile.ui'
+      - '.'
+    timeout: 900s
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/ai50-ui:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/ai50-ui:latest'
+
+timeout: 1200s

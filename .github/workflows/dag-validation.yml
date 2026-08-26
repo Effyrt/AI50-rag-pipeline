@@ -1,0 +1,197 @@
+name: Airflow DAG validation
+
+# Produces the Lab 2/3 DAG evidence the repo otherwise has none of, on free GitHub
+# Actions runners (unlimited minutes on a public repo).
+#
+# SCOPE - read this before citing the artifacts as evidence:
+#
+#   What this proves:
+#     • the DAGs parse cleanly in a real Airflow install (which the AST-based checks
+#       in tests/test_dags.py cannot prove)
+#     • the task graph matches what docs/AIRFLOW_USAGE_GUIDE.md documents
+#     • the coordination tasks (load_company_list, and the GCS verification tasks in
+#       their credential-less skip path) execute successfully
+#
+#   What this does NOT prove:
+#     • that 50 companies were scraped. The CloudRunExecuteJobOperator tasks need GCP
+#       credentials and are skipped unless GCP_SA_KEY is configured as a repo secret.
+#
+# Set the GCP_SA_KEY secret to additionally run the full end-to-end DAG test.
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "airflow/dags/**"
+      - "data/forbes_ai50_seed.json"
+      - ".github/workflows/dag-validation.yml"
+  pull_request:
+    paths:
+      - "airflow/dags/**"
+  workflow_dispatch:
+  schedule:
+    # Weekly, so the evidence stays current even without code changes.
+    - cron: "0 4 * * 1"
+
+env:
+  AIRFLOW_VERSION: "2.9.3"
+  PYTHON_VERSION: "3.11"
+  AIRFLOW_HOME: ${{ github.workspace }}/.airflow
+  AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+  AIRFLOW__CORE__DAGS_FOLDER: ${{ github.workspace }}/airflow/dags
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      # The `secrets` context is not reliably available in step-level `if:`
+      # expressions, so presence is resolved once here into a plain string.
+      HAS_GCP_KEY: ${{ secrets.GCP_SA_KEY != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Airflow with the official constraints
+        # The constraint file is what makes an Airflow install reproducible; without it
+        # pip resolves a broken dependency set.
+        run: |
+          CONSTRAINTS="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+          python -m pip install --upgrade pip
+          pip install "apache-airflow==${AIRFLOW_VERSION}" \
+                      "apache-airflow-providers-google" \
+                      --constraint "$CONSTRAINTS"
+
+      - name: Initialise the Airflow metadata DB
+        run: |
+          mkdir -p "$AIRFLOW_HOME"
+          airflow db migrate
+          airflow version
+
+      - name: Check for DAG import errors
+        # The gate that matters. A DAG importing src/backend passes the AST checks but
+        # fails here, exactly as it would in Cloud Composer.
+        run: |
+          set -o pipefail
+          airflow dags list-import-errors 2>&1 | tee dag-import-errors.txt
+          if grep -qiE "\.py" dag-import-errors.txt; then
+            echo "::error::DAG import errors detected"
+            cat dag-import-errors.txt
+            exit 1
+          fi
+          echo "✓ no DAG import errors"
+
+      - name: List registered DAGs
+        run: |
+          airflow dags list 2>&1 | tee dag-list.txt
+          for dag in ai50_full_ingest_dag ai50_daily_refresh_dag; do
+            grep -q "$dag" dag-list.txt || { echo "::error::$dag not registered"; exit 1; }
+            echo "✓ $dag registered"
+          done
+
+      - name: Capture the task graph for each DAG
+        run: |
+          for dag in ai50_full_ingest_dag ai50_daily_refresh_dag ai50_structured_dag; do
+            echo "=============================================" | tee -a dag-structure.txt
+            echo "DAG: $dag"                                     | tee -a dag-structure.txt
+            echo "=============================================" | tee -a dag-structure.txt
+            airflow tasks list "$dag" --tree 2>&1 | tee -a dag-structure.txt
+            echo "" | tee -a dag-structure.txt
+          done
+
+      - name: Execute the credential-free coordination tasks
+        # load_company_list reads the seed through its local-file fallback, and the GCS
+        # verification tasks take their documented skip path when no credentials are
+        # present. Everything here runs for real.
+        run: |
+          RUN_DATE=$(date -u -d "yesterday" +%Y-%m-%d)
+          set -o pipefail
+          {
+            echo "Task execution — logical date ${RUN_DATE}"
+            echo ""
+            for spec in \
+              "ai50_full_ingest_dag load_company_list" \
+              "ai50_full_ingest_dag store_raw_to_cloud" \
+              "ai50_daily_refresh_dag load_company_list" \
+              "ai50_daily_refresh_dag log_completion" ; do
+              set -- $spec
+              echo "─────────────────────────────────────────────"
+              echo "airflow tasks test $1 $2 ${RUN_DATE}"
+              echo "─────────────────────────────────────────────"
+              airflow tasks test "$1" "$2" "${RUN_DATE}" 2>&1
+              echo ""
+            done
+          } | tee task-execution.txt
+
+          grep -q "Loaded 50 companies" task-execution.txt \
+            || { echo "::error::load_company_list did not report 50 companies"; exit 1; }
+          echo "✓ coordination tasks executed; seed resolved to 50 companies"
+
+      - name: Full end-to-end DAG test (only with GCP credentials)
+        if: env.HAS_GCP_KEY == 'true'
+        env:
+          # Passed through the environment rather than interpolated into the shell, so
+          # the key never appears in a command line.
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-sa.json
+        run: |
+          printf '%s' "$GCP_SA_KEY" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          trap 'rm -f "$GOOGLE_APPLICATION_CREDENTIALS"' EXIT
+          RUN_DATE=$(date -u -d "yesterday" +%Y-%m-%d)
+          airflow dags test ai50_daily_refresh_dag "$RUN_DATE" 2>&1 | tee dag-e2e-run.txt
+
+      - name: Note when the end-to-end run was skipped
+        if: env.HAS_GCP_KEY != 'true'
+        run: |
+          cat > dag-e2e-run.txt <<'EOF'
+          End-to-end DAG run SKIPPED.
+
+          The GCP_SA_KEY repository secret is not configured, so the
+          CloudRunExecuteJobOperator tasks cannot authenticate. The artifacts in this
+          run therefore evidence DAG parsing, structure and coordination-task
+          execution - not a completed 50-company scrape.
+
+          To produce full end-to-end evidence, add a service-account key with
+          roles/run.invoker as the GCP_SA_KEY secret and re-run this workflow.
+          EOF
+          cat dag-e2e-run.txt
+
+      - name: Write an evidence summary
+        if: always()
+        run: |
+          {
+            echo "# Airflow DAG validation"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Run:    ${GITHUB_RUN_ID}"
+            echo "- Date:   $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo "- Airflow: ${AIRFLOW_VERSION} (Python ${PYTHON_VERSION})"
+            echo ""
+            echo "## Import errors"
+            echo '```'; cat dag-import-errors.txt 2>/dev/null || echo "(none)"; echo '```'
+            echo "## Registered DAGs"
+            echo '```'; cat dag-list.txt 2>/dev/null; echo '```'
+            echo "## Task graphs"
+            echo '```'; cat dag-structure.txt 2>/dev/null; echo '```'
+          } > dag-evidence-summary.md
+          cat dag-evidence-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload DAG evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: airflow-dag-evidence-${{ github.run_number }}
+          retention-days: 90
+          path: |
+            dag-evidence-summary.md
+            dag-import-errors.txt
+            dag-list.txt
+            dag-structure.txt
+            task-execution.txt
+            dag-e2e-run.txt

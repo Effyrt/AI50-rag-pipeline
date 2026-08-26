@@ -655,11 +655,24 @@ Legend: `x` complete · `~` harness/scaffolding built but blocked on credentials
 | T-1.1 | Harness built, unit-tested, `--dry-run` verified | Real generation needs `OPENAI_API_KEY` |
 | T-1.2 | `EVAL.md` restructured with rubric + instructions | Scoring needs an API key and scraped `data/raw/` |
 | T-1.3 | — | Depends on T-1.2 |
-| T-1.6 | Decision documented; local compose verified | `gcloud run deploy` needs GCP credentials |
-| T-2.5 | — | Needs a live Airflow run |
+| T-1.6 | **Deploy path implemented**: `Dockerfile.api`/`Dockerfile.ui`, cloudbuild configs, and `gcloud run deploy` for both services at `--min-instances=0` | Running it needs GCP credentials; two URLs then go in the README |
+| T-2.5 | **Evidence pipeline implemented**: `.github/workflows/dag-validation.yml` produces parse, structure and coordination-task evidence as CI artifacts | Full 50-company run evidence needs the `GCP_SA_KEY` secret |
 | T-4.6 | — | Needs a live GCS side-file store to verify against |
-| T-5.3 | — | Needs GCP IAM access |
+| T-5.3 | Scheduler service account with `run.invoker` added in `setup_scheduler.sh` | Cloud Run Jobs still use the default compute SA |
 | T-6.3 | Suite + harness verified locally | Full walkthrough needs Docker and credentials |
+
+### Free-tier deployment path (added 2026-08-05)
+
+Composer is no longer on the default path. The deployed footprint fits GCP's
+always-free allowances at weekly cadence:
+
+- `gcp/setup_scheduler.sh` — Cloud Scheduler → Cloud Run Jobs (3 jobs free, forever)
+- `gcp/build_and_deploy.sh` — now also deploys `ai50-api` and `ai50-ui` as Cloud Run
+  services, scale-to-zero, satisfying Lab 10's "GCP or AWS" requirement for free
+- `.github/workflows/dag-validation.yml` — DAG evidence on free Actions runners
+
+Binding constraint: the scraper uses ~30,000 vCPU-s per full run against a 180,000
+vCPU-s monthly allowance — about **6 runs/month**. Weekly fits; daily does not.
 
 | Metric | Baseline (`648193e`) | Now | Target |
 |---|---|---|---|

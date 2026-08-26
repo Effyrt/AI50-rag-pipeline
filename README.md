@@ -148,41 +148,79 @@ docker compose up --build
    - Secret Manager for API keys
    - Service accounts with proper IAM roles
 
-2. **Build and deploy Docker images:**
+2. **Build and deploy Docker images and services:**
    ```bash
-   ./build_and_deploy.sh
+   ./gcp/build_and_deploy.sh
    ```
+   This builds four images and deploys:
+   - Cloud Run **Jobs** (batch): `ai50-scraper`, `ai50-extractor`
+   - Cloud Run **Services** (Lab 10): `ai50-api` (FastAPI) and `ai50-ui` (Streamlit),
+     both with `--min-instances=0` so they scale to zero when idle. The script prints
+     both public URLs and wires the UI's `API_BASE` to the API automatically.
+
+3. **Schedule the pipeline (free):**
+   ```bash
+   ./gcp/setup_scheduler.sh          # weekly, Mondays 03:00 UTC
+   SCHEDULE="0 3 * * *" ./gcp/setup_scheduler.sh   # daily
+   ```
+   Cloud Scheduler drives the two Cloud Run Jobs directly and gives 3 jobs free per
+   month, permanently. The Airflow DAGs remain the Lab 2/3 artifact and the tool for
+   local development — see `docs/ROADMAP.md` for why Composer is not the default.
+
+### Running costs
+
+The deployed footprint fits inside GCP's always-free allowances at a weekly cadence:
+
+| Resource | Free allowance / month | Usage (weekly) |
+|---|---|---|
+| Cloud Run vCPU | 180,000 vCPU-s | ~134,400 |
+| Cloud Run memory | 360,000 GiB-s | ~149,000 |
+| Cloud Run requests | 2,000,000 | hundreds |
+| GCS storage | 5 GB | ~2.2 GB steady state |
+| Cloud Scheduler | 3 jobs | 2 |
+
+The scraper uses ~30,000 vCPU-s per full 50-company run, so the vCPU allowance permits
+about **6 runs/month** — weekly fits, daily (30 runs) is roughly 5× over. Container
+image storage slightly exceeds the 0.5 GB Artifact Registry allowance (~$0.15/month).
+
+**Cloud Composer has no free tier** and bills per environment rather than per DAG run,
+so it is not part of the default deployment path.
    This builds and deploys:
    - `ai50-scraper` Cloud Run Job
    - `ai50-extractor` Cloud Run Job
    - `ai50-rag-index-builder` Cloud Run Job (if RAG pipeline is deployed)
 
-3. **Set up Cloud Composer (Airflow):**
+4. **Optional — managed Airflow via Cloud Composer:**
    ```bash
-   ./setup_composer.sh
+   ./gcp/setup_composer.sh
    ```
-   This creates:
-   - Cloud Composer environment
-   - Uploads DAGs to Composer
-   - Configures service accounts
+   Creates a Composer environment, uploads the DAGs, and configures service accounts.
+   Only needed if you want a hosted Airflow UI; step 3 already schedules the pipeline
+   for free.
 
 ### Running the Pipeline
 
-1. **Manual trigger via Airflow UI:**
-   - Access Airflow UI (link provided after Composer setup)
-   - Trigger `ai50_daily_refresh` DAG
-   - Monitor execution in Airflow UI
+1. **Locally, via Airflow:**
+   ```bash
+   docker compose -f docker/docker-compose.airflow.yml up -d
+   # UI at http://localhost:8080 (admin / admin), then trigger ai50_full_ingest_dag
+   ```
 
-2. **Automatic daily refresh:**
-   - DAG runs daily at 3 AM UTC
-   - Scrapes updated pages
-   - Extracts structured data
-   - Updates dashboards
+2. **On a schedule:** Cloud Scheduler triggers the Cloud Run Jobs (step 3 above).
+   Check runs with `gcloud run jobs executions list --region=us-central1 --limit=5`.
+
+3. **Via a hosted Airflow UI:** only if Composer was created in step 4 — trigger
+   `ai50_daily_refresh_dag` and monitor it in the Airflow UI.
+
+The `ai50_daily_refresh_dag` schedule is `0 3 * * *` (03:00 UTC), as Lab 3 requires. It
+re-scrapes the pages that change often (About, Careers, Blog) into a dated per-run
+folder, re-extracts, and refreshes the vector index.
 
 ### Documentation
 
 - **GCP Deployment Guide**: See `docs/GCP_DEPLOYMENT_GUIDE.md`
 - **Airflow Usage Guide**: See `docs/AIRFLOW_USAGE_GUIDE.md`
+- **Remediation Roadmap**: See `docs/ROADMAP.md`
 - **Remediation Roadmap**: See `docs/ROADMAP.md`
 
 ## 📊 Data Flow
@@ -320,6 +358,8 @@ python -m src.backend.rag_pipeline     # RAG indexing + generation
 - **GitHub Repository**: https://github.com/Effyrt/AI50-rag-pipeline
 - **Project Video Demo**: https://drive.google.com/file/d/188NkhlREF0QHgGaySn_ZsDOnG95bkoVa/view?usp=sharing
 - **GCP Project**: gen-lang-client-0653324487
+- **Live Streamlit dashboard**: _paste the `ai50-ui` URL printed by `./gcp/build_and_deploy.sh`_
+- **Live FastAPI backend**: _paste the `ai50-api` URL; interactive docs at `/docs`_
 
 ## 📄 License
 

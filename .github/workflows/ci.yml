@@ -47,17 +47,18 @@ jobs:
 
       - name: Reject error-masking patterns in deploy scripts
         # `gcloud ... || echo "already exists"` reported genuine failures as success
-        # and hid two sets of invalid flags for months.
+        # and hid two sets of invalid flags for months. Matches only that pattern:
+        # `|| echo <default>` supplying a fallback value is legitimate.
         run: |
-          if grep -rn '|| echo' gcp/*.sh | grep -v '^\s*#' | grep -v '# '; then
-            echo "::error::found '|| echo' error masking in gcp/*.sh"
+          if grep -rnE '\|\| echo[^|]*exists' gcp/*.sh | grep -vE '^\S+:[0-9]+:\s*#'; then
+            echo "::error::found '|| echo ... exists' error masking in gcp/*.sh"
             exit 1
           fi
           echo "no error masking found"
 
       - name: Reject public bucket grants
         run: |
-          if grep -rn 'allUsers' gcp/*.sh | grep -v '#'; then
+          if grep -rn 'allUsers' gcp/*.sh | grep -vE '^\S+:[0-9]+:\s*#'; then
             echo "::error::found allUsers IAM grant in gcp/*.sh"
             exit 1
           fi
