@@ -111,6 +111,67 @@ def test_dag_uses_no_relative_imports(path):
     assert not relative, f"{path.name} uses relative imports, unsupported in a DAGs folder"
 
 
+def defines_a_dag(path: Path) -> bool:
+    """True when the module constructs at least one DAG object."""
+    return bool(dag_kwargs(ast.parse(path.read_text())))
+
+
+def dag_ids_in(path: Path) -> list[str]:
+    return [
+        value
+        for kwargs in dag_kwargs(ast.parse(path.read_text()))
+        if (value := literal(kwargs.get("dag_id")))
+    ]
+
+
+@pytest.mark.parametrize("path", dag_files(), ids=lambda p: p.name)
+def test_dag_module_does_not_import_another_dag_module(path):
+    """Regression test for AirflowDagDuplicatedIdException.
+
+    Airflow's DagBag collects every DAG found in a module's globals. Importing a module
+    that builds a DAG at import time therefore registers that DAG a second time, and
+    Airflow rejects the duplicate - taking BOTH DAGs out of service, not just one.
+
+    Shared code must live in a module that defines no DAG (ai50_common.py).
+    """
+    if not defines_a_dag(path):
+        pytest.skip(f"{path.name} defines no DAG")
+
+    dag_modules = {p.stem for p in dag_files() if p != path and defines_a_dag(p)}
+    offenders = module_roots(ast.parse(path.read_text())) & dag_modules
+
+    assert not offenders, (
+        f"{path.name} imports DAG-defining module(s) {sorted(offenders)}. Their DAGs "
+        f"would be registered twice and Airflow would reject them as duplicate IDs. "
+        f"Move shared code into ai50_common.py."
+    )
+
+
+def test_dag_ids_are_unique_across_files():
+    """Two files declaring the same dag_id is the same duplicate-ID failure."""
+    seen: dict[str, str] = {}
+    for path in dag_files():
+        for dag_id in dag_ids_in(path):
+            assert dag_id not in seen, (
+                f"dag_id '{dag_id}' declared in both {seen[dag_id]} and {path.name}"
+            )
+            seen[dag_id] = path.name
+
+
+def test_shared_helper_module_defines_no_dag():
+    """ai50_common.py exists to be importable by DAG files, so it must stay DAG-free."""
+    common = DAG_DIR / "ai50_common.py"
+    assert common.is_file(), "ai50_common.py missing; shared helpers have nowhere to live"
+    assert not defines_a_dag(common), "ai50_common.py must not define a DAG"
+
+
+def test_helper_module_is_airflowignored():
+    """Documents intent and saves the DagBag parsing a file with no DAGs."""
+    ignore = DAG_DIR / ".airflowignore"
+    assert ignore.is_file(), ".airflowignore missing from the DAGs folder"
+    assert "ai50_common.py" in ignore.read_text()
+
+
 def test_required_dags_are_present():
     """Deliverable 4 names exactly these two DAGs."""
     ids = set()

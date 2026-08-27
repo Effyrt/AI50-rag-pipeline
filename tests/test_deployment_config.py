@@ -173,8 +173,25 @@ class TestWorkflows:
         assert "apache-airflow-providers-google" in source
 
     def test_dag_validation_gates_on_import_errors(self):
+        """Must use DagBag, not a grep over CLI table output.
+
+        The table format wraps long errors and is interleaved with Python warnings
+        containing ".py" paths, which produced false results in both directions.
+        """
         source = (WORKFLOWS / "dag-validation.yml").read_text()
-        assert "dags list-import-errors" in source
+        assert "DagBag" in source
+        assert "bag.import_errors" in source
+        assert 'grep -qiE "\\.py"' not in source
+
+    def test_evidence_summary_tolerates_missing_files(self):
+        """Earlier steps are skipped when the gate fails, so their files are absent.
+
+        A bare `cat` under `bash -e` failed the summary step for exactly the runs
+        where the evidence matters most.
+        """
+        source = (WORKFLOWS / "dag-validation.yml").read_text()
+        assert "show()" in source
+        assert "if [ -f" in source
 
     def test_dag_validation_uploads_evidence(self):
         """The artifacts are the point: they are the Lab 2/3 run evidence."""

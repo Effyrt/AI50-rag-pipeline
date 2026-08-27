@@ -75,17 +75,35 @@ jobs:
           airflow version
 
       - name: Check for DAG import errors
-        # The gate that matters. A DAG importing src/backend passes the AST checks but
-        # fails here, exactly as it would in Cloud Composer.
+        # The gate that matters. A DAG importing src/backend, or importing another DAG
+        # module and tripping AirflowDagDuplicatedIdException, passes the AST checks but
+        # fails here - exactly as it would in Cloud Composer.
+        #
+        # Parsed as JSON rather than grepped: the table output is wrapped and interleaved
+        # with Python warnings that themselves contain ".py" paths, so a substring match
+        # produced false failures.
         run: |
-          set -o pipefail
-          airflow dags list-import-errors 2>&1 | tee dag-import-errors.txt
-          if grep -qiE "\.py" dag-import-errors.txt; then
-            echo "::error::DAG import errors detected"
-            cat dag-import-errors.txt
-            exit 1
-          fi
-          echo "✓ no DAG import errors"
+          # Uses DagBag directly rather than parsing CLI output: the table format wraps
+          # long errors and is interleaved with Python warnings that themselves contain
+          # ".py" paths, so a substring match produced false results in both directions.
+          # DagBag is what Airflow itself uses, and it honours .airflowignore.
+          python - <<'PY' | tee dag-import-errors.txt
+          import os, sys
+          from airflow.models import DagBag
+
+          bag = DagBag(dag_folder=os.environ["AIRFLOW__CORE__DAGS_FOLDER"],
+                       include_examples=False)
+
+          if bag.import_errors:
+              print(f"{len(bag.import_errors)} DAG import error(s):\n")
+              for path, err in bag.import_errors.items():
+                  print(f"--- {path}\n{err}\n")
+              print("::error::DAG import errors detected")
+              sys.exit(1)
+
+          print("No DAG import errors.\n")
+          print(f"{len(bag.dags)} DAG(s) loaded: {', '.join(sorted(bag.dags))}")
+          PY
 
       - name: List registered DAGs
         run: |
@@ -164,21 +182,28 @@ jobs:
 
       - name: Write an evidence summary
         if: always()
+        # `bash -e` is the default, and earlier steps are skipped when the import-error
+        # gate fails, so their output files do not exist. A bare `cat` on a missing file
+        # therefore failed this step and lost the summary for exactly the runs where it
+        # matters most. `show` tolerates absent files.
         run: |
+          show() { if [ -f "$1" ]; then cat "$1"; else echo "(step did not run)"; fi; }
           {
             echo "# Airflow DAG validation"
             echo ""
-            echo "- Commit: \`${GITHUB_SHA}\`"
-            echo "- Run:    ${GITHUB_RUN_ID}"
-            echo "- Date:   $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo "- Commit:  \`${GITHUB_SHA}\`"
+            echo "- Run:     ${GITHUB_RUN_ID}"
+            echo "- Date:    $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
             echo "- Airflow: ${AIRFLOW_VERSION} (Python ${PYTHON_VERSION})"
             echo ""
             echo "## Import errors"
-            echo '```'; cat dag-import-errors.txt 2>/dev/null || echo "(none)"; echo '```'
+            echo '```'; show dag-import-errors.txt; echo '```'
             echo "## Registered DAGs"
-            echo '```'; cat dag-list.txt 2>/dev/null; echo '```'
+            echo '```'; show dag-list.txt; echo '```'
             echo "## Task graphs"
-            echo '```'; cat dag-structure.txt 2>/dev/null; echo '```'
+            echo '```'; show dag-structure.txt; echo '```'
+            echo "## Task execution"
+            echo '```'; show task-execution.txt; echo '```'
           } > dag-evidence-summary.md
           cat dag-evidence-summary.md >> "$GITHUB_STEP_SUMMARY"
 

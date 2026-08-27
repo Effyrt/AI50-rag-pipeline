@@ -22,7 +22,6 @@ Tasks:
 """
 from __future__ import annotations
 
-import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -31,18 +30,20 @@ from airflow.providers.google.cloud.operators.cloud_run import (
     CloudRunExecuteJobOperator,
 )
 
-# Shared helpers live in the full-ingest DAG module, which sits alongside this file in
-# the DAGs folder, so the import resolves both in Composer and locally.
-from ai50_full_ingest_dag import company_slug, read_seed
-
-GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "gen-lang-client-0653324487")
-GCP_REGION = os.getenv("GCP_REGION", "us-central1")
-
-SCRAPER_JOB_NAME = "ai50-scraper"
-EXTRACTOR_JOB_NAME = "ai50-extractor"
-RAG_INDEX_JOB_NAME = "ai50-rag-index-builder"
-
-RAW_BUCKET = f"{GCP_PROJECT_ID}-raw-data"
+# Shared config and helpers. This must NOT import ai50_full_ingest_dag: importing a
+# module that builds a DAG at import time registers that DAG a second time, and Airflow
+# rejects it with AirflowDagDuplicatedIdException, taking both DAGs down.
+# ai50_common defines no DAG.
+from ai50_common import (
+    EXTRACTOR_JOB_NAME,
+    GCP_PROJECT_ID,
+    GCP_REGION,
+    RAG_INDEX_JOB_NAME,
+    RAW_BUCKET,
+    SCRAPER_JOB_NAME,
+    company_slug,
+    load_company_list,
+)
 
 # Lab 3: refresh only the pages that change often.
 KEY_PAGES = "about,careers,blog"
@@ -55,17 +56,6 @@ DEFAULT_ARGS = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
-
-
-def load_company_list(**context) -> int:
-    """Publish the company list for downstream verification."""
-    companies = read_seed()
-    names = [c.get("company_name", "") for c in companies if c.get("company_name")]
-
-    print(f"Loaded {len(names)} companies for daily refresh")
-    context["ti"].xcom_push(key="company_names", value=names)
-    context["ti"].xcom_push(key="company_count", value=len(names))
-    return len(names)
 
 
 def log_completion(**context) -> dict:
