@@ -229,22 +229,39 @@ src/payload_assembler.py
 # RAG pipeline files (handled by teammate)
 gcp/deploy_rag_job.sh
 
+# OS metadata
+.DS_Store
+**/.DS_Store
+
+# Service-account credentials. docker-compose.yml mounts ./credentials.json from the
+# repo root, so without these patterns a developer following the Docker instructions
+# leaves a committable private key in the working tree.
+credentials.json
+*-key.json
+*_key.json
+service-account*.json
+gcp-*.json
+
 # Assignment/reference files (exclude from git)
+# NOTE: EVAL.md and CONTRIBUTION_ATTESTATION.txt are deliberately NOT listed here.
+# Both are required deliverables and must stay tracked.
 Assignment.md
 Roadmap.md
 sample_payload.json
 output_structure.md
-EVAL.md
 PE_Dashboard.md
 docs/PE_Dashboard.md
 LAB0_SUMMARY.md
 *LAB0*.md
-CONTRIBUTION_ATTESTATION.txt
 
 # Markdown files (except essential ones)
 *.md
 !README.md
 !docs/*.md
+
+# Internal planning docs (kept local, not part of the submitted repo)
+# This must come after !docs/*.md — the last matching rule wins.
+docs/PROJECT_STATUS_AND_BACKLOG.md
 
 # Data files (generated artifacts - stored in GCS, not git)
 data/raw/
@@ -255,3 +272,7 @@ data/sample_dashboard.md
 data/starter_payload.json
 # Keep only the seed file
 !data/forbes_ai50_seed.json
+
+# Lab 9 evaluation artifacts ARE committed - they are the evidence behind EVAL.md.
+!data/eval/
+!data/eval/**

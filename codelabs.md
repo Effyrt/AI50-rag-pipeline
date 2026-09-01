@@ -108,24 +108,26 @@ Ideal for structured or semi-structured documents such as profiles, articles, an
 
 1. **Document Chunking**
    - Raw HTML → cleaned text
-   - Split into 500-token chunks with 50-token overlap
+   - Split into 800-character chunks with 200-character overlap
+     (`RecursiveCharacterTextSplitter`, see `rag_pipeline.py`)
    - Preserves context across chunks
 
 2. **Embedding Generation**
-   - OpenAI `text-embedding-3-small` model
-   - Each chunk → 1536-dimensional vector
-   - Captures semantic meaning
+   - `sentence-transformers/all-MiniLM-L6-v2`, run locally
+   - Each chunk → 384-dimensional vector
+   - No API key and no per-token cost for embeddings
 
-3. **FAISS Indexing**
-   - Builds similarity search index
-   - Enables fast nearest-neighbor retrieval
-   - ~7,000+ chunks indexed for 50 companies
+3. **Chroma Indexing**
+   - Persistent Chroma collection under `data/vector_db/`
+   - Enables fast nearest-neighbour retrieval
+   - Chunk count depends on how many pages were scraped; check with
+     `RAGPipeline().get_stats()` rather than assuming a figure
 
 4. **Metadata Storage**
    - Company name, URL, chunk ID
    - Enables filtering and attribution
 
-**✅ Checkpoint:** Vector index built and stored in `data/vector_index/`.
+**✅ Checkpoint:** Vector index built and stored in `data/vector_db/`.
 
 ---
 
@@ -190,7 +192,7 @@ The company operates through multiple revenue streams...
 **Creates:**
 - `raw-data/` bucket for scraped HTML
 - `structured-data/` bucket for Pydantic JSONs
-- `vector-index/` bucket for FAISS index
+- vector index persisted by the RAG index-builder job
 - `payloads/` bucket for combined data
 
 **✅ Checkpoint:** 4 GCS buckets created for dual-pipeline data.
@@ -210,7 +212,7 @@ The company operates through multiple revenue streams...
    - Outputs to `structured-data/`
 
 3. **`ai50-rag-index-builder`**
-   - Builds FAISS vector index
+   - Builds the Chroma vector index
    - Outputs to `vector-index/`
 
 
@@ -329,15 +331,28 @@ becoming one of the fastest-growing consumer applications...
 
 #### 4. **Performance Metrics**
 
-| Metric | Structured Pipeline | RAG Pipeline |
-|--------|-------------------|--------------|
-| **Data Accuracy** | 94% | 78% |
-| **Format Consistency** | 100% (all 50 companies) | 65% |
-| **Generation Speed** | 8-12 sec | 15-25 sec |
-| **Hallucination Rate** | 2% | 18% |
-| **Missing Data Handling** | Explicit "Unknown" | Omission/guessing |
-| **Token Usage** | 3,500 avg | 6,200 avg |
-| **Production Ready** | ✅ Yes | ⚠️ Research only |
+> **These figures must be measured, not assumed.** Earlier versions of this codelab
+> quoted specific percentages that no artifact in the repository supported. Run the
+> evaluation harness and record what it reports:
+>
+> ```bash
+> python scripts/run_eval.py --companies anthropic,databricks,abridge,hebbia,xai \
+>                            --scorer "<your name>"
+> ```
+>
+> Each row below names the source that produces it. Fill the table in from
+> `EVAL.md` and `data/eval/<company>/scores.json` once the run has completed.
+
+| Metric | Structured Pipeline | RAG Pipeline | Where the number comes from |
+|--------|--------------------|--------------|------------------------------|
+| **Schema adherence** (0–2) | _to be measured_ | _to be measured_ | `evaluator.score_schema`, automated |
+| **Provenance use** (0–2) | _to be measured_ | _to be measured_ | `evaluator.score_provenance`, automated |
+| **Hallucination control** (0–2) | _to be measured_ | _to be measured_ | `evaluator.score_hallucination`, automated |
+| **Factual correctness** (0–3) | _to be measured_ | _to be measured_ | human-scored, scorer recorded in `scores.json` |
+| **Readability** (0–1) | _to be measured_ | _to be measured_ | human-scored, scorer recorded in `scores.json` |
+| **Generation latency** | _to be measured_ | _to be measured_ | `latency_seconds` in `scores.json` |
+| **Token usage** | _to be measured_ | _to be measured_ | `input_tokens` / `output_tokens` in `scores.json` |
+| **Missing data handling** | explicit `"Not disclosed."` | explicit `"Not disclosed."` | both pipelines share the same prompt contract |
 
 #### 5. **Consistency Across Companies**
 
@@ -373,9 +388,8 @@ All 50 dashboards have:
 - 🔍 Ad-hoc questions requiring context
 - 🔍 Brainstorming and synthesis
 
-### Real Production Results
-
-**✅ Checkpoint:** Clear understanding of when to use each pipeline and why Structured excels for production dashboards.
+**✅ Checkpoint:** Clear understanding of when to use each pipeline, and a completed
+`EVAL.md` showing which one measured better on your data.
 
 ---
 
@@ -390,9 +404,13 @@ All 50 dashboards have:
 
 ### Key Takeaway
 
-**Structured Pipeline** achieves superior results for production investor dashboards through:
-- Targeted 5-pass extraction architecture
+The **Structured Pipeline** is expected to produce more consistent investor dashboards,
+because of:
+- its targeted 5-pass extraction architecture
 - Pydantic validation and type safety
-- Consistent formatting across all companies
-- Explicit handling of missing data
-- 94% data accuracy vs 78% for RAG
+- a fixed field set, giving comparable output across companies
+- explicit handling of missing data
+
+Whether that expectation holds on your data is exactly what Lab 9 is for. Run the
+evaluation, record the scores in `EVAL.md`, and state the result you actually measured —
+including if it contradicts the hypothesis above.

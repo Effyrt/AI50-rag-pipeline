@@ -1,0 +1,9 @@
+# Streamlit frontend dependencies only.
+#
+# The UI talks to the API over HTTP and does no LLM, vector or scraping work, so it
+# needs none of the heavy runtime stack. Keeping this separate from requirements.txt
+# is what makes the UI container image small (tens of MB rather than gigabytes).
+
+streamlit==1.38.0
+requests==2.32.3
+pandas==2.2.3

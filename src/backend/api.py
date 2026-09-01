@@ -11,12 +11,16 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-# GCS imports
-from google.cloud import storage
-from google.oauth2 import service_account
+# GCS is optional: the API falls back to local disk when it is unavailable or
+# unconfigured, so google-cloud-storage is imported lazily inside get_gcs_client()
+# rather than at module scope. A missing or broken GCS install must not stop the API
+# from serving local data.
 
-# Import pipelines
-from .rag_pipeline import RAGPipeline
+# Import pipelines.
+# RAGPipeline is imported lazily inside get_rag_pipeline() rather than here: importing
+# it pulls in langchain, chromadb and sentence-transformers and downloads an embedding
+# model on first construction. Serving /companies or /dashboard/structured needs none
+# of that, and neither does the test suite.
 from .structured_pipeline import load_payload
 
 # Initialize FastAPI
@@ -40,17 +44,22 @@ gcs_client = None
 BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "ai50-dashboard-data")
 
 def get_gcs_client():
-    """Get or create GCS client"""
+    """Get or create the GCS client, or None when GCS is unavailable.
+
+    Returning None is a supported state: callers fall back to local disk.
+    """
     global gcs_client
     if gcs_client is None:
         try:
-            # Try to use service account if available
+            from google.cloud import storage
+            from google.oauth2 import service_account
+
             credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
             if credentials_path:
                 credentials = service_account.Credentials.from_service_account_file(credentials_path)
                 gcs_client = storage.Client(credentials=credentials)
             else:
-                # Use default credentials
+                # Application Default Credentials
                 gcs_client = storage.Client()
         except Exception as e:
             print(f"Warning: GCS client initialization failed: {e}")
@@ -80,9 +89,15 @@ def get_structured_files_cache():
     return _structured_files_cache
 
 def get_rag_pipeline():
-    """Get or create RAG pipeline instance"""
+    """Get or create the RAG pipeline instance.
+
+    Imported here rather than at module scope so the heavy RAG dependency tree is
+    only loaded when a RAG endpoint is actually called.
+    """
     global rag_pipeline
     if rag_pipeline is None:
+        from .rag_pipeline import RAGPipeline
+
         rag_pipeline = RAGPipeline()
     return rag_pipeline
 
@@ -126,10 +141,49 @@ class ComparisonResponse(BaseModel):
     comparison_available: bool = False
     generated_at: str
 
+class SearchHit(BaseModel):
+    content: str
+    company: str
+    source: str
+    score: Optional[float] = None
+
+class SearchResponse(BaseModel):
+    query: str
+    company: Optional[str] = None
+    k: int
+    hit_count: int
+    hits: List[SearchHit]
+
 
 # ============================================================
 # Helper Functions
 # ============================================================
+
+def gcs_configured() -> bool:
+    """True when the API is configured to read from GCS rather than local disk."""
+    return bool(os.getenv("GCS_BUCKET_NAME")) and get_gcs_client() is not None
+
+
+def describe_data_source() -> str:
+    """Human-readable description of where data is being read from.
+
+    Used in 404 messages and logged at startup so it is never ambiguous whether a
+    missing dashboard means "not in the bucket" or "not on this disk".
+    """
+    if gcs_configured():
+        return f"GCS bucket gs://{BUCKET_NAME}"
+    return f"local disk ({Path('data').resolve()})"
+
+
+def log_data_source() -> None:
+    """Log the active data source once, at startup."""
+    print(f"[api] data source: {describe_data_source()}")
+    if not gcs_configured():
+        print("[api] GCS_BUCKET_NAME unset or client unavailable — using local data/ directory")
+
+
+app.router.on_startup.append(log_data_source)
+
 
 def load_from_gcs(blob_path: str) -> Optional[str]:
     """Load content from GCS blob"""
@@ -265,10 +319,12 @@ def read_root():
         "message": "PE Dashboard API is running",
         "version": "1.0.0",
         "status": "operational",
+        "data_source": describe_data_source(),
         "endpoints": {
             "companies": "/companies - Get all companies list",
             "structured_dashboard": "/dashboard/structured - Generate structured dashboard",
             "rag_dashboard": "/dashboard/rag - Generate RAG dashboard",
+            "rag_search": "/rag/search?q=&company=&k= - Query the vector index directly",
             "comparison": "/companies/{company_name}/comparison - Compare both dashboards"
         }
     }
@@ -309,8 +365,50 @@ def get_companies():
 
 
 # ============================================================
-# RAG Pipeline Endpoints (YOUR WORK!)
+# RAG Pipeline Endpoints
 # ============================================================
+
+@app.get("/rag/search", response_model=SearchResponse)
+def rag_search(q: str, company: Optional[str] = None, k: int = 5):
+    """Query the vector index directly (Lab 4 retrieval test).
+
+    Exposes RAGPipeline.search() so retrieval quality can be inspected
+    independently of dashboard generation.
+
+    Args:
+        q: search query, e.g. "funding" or "leadership"
+        company: optional company filter
+        k: number of chunks to return
+    """
+    if not q or not q.strip():
+        raise HTTPException(status_code=422, detail="Query parameter 'q' must not be empty")
+    if k < 1 or k > 50:
+        raise HTTPException(status_code=422, detail="Parameter 'k' must be between 1 and 50")
+
+    try:
+        rag = get_rag_pipeline()
+        results = rag.search(query=q, company_name=company, k=k)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Retrieval error: {str(e)}")
+
+    hits = [
+        SearchHit(
+            content=r.get("content", ""),
+            company=r.get("company", "unknown"),
+            source=r.get("source", "unknown"),
+            score=r.get("score"),
+        )
+        for r in results
+    ]
+
+    return SearchResponse(
+        query=q,
+        company=company,
+        k=k,
+        hit_count=len(hits),
+        hits=hits,
+    )
+
 
 @app.post("/dashboard/rag", response_model=DashboardResponse)
 def generate_rag_dashboard(request: DashboardRequest):
@@ -362,47 +460,55 @@ def generate_structured_dashboard(request: DashboardRequest):
     Returns:
         Generated dashboard in markdown format
     """
-    try:
-        # Create company ID for GCS lookup
-        company_id = request.company_name.lower().replace(' ', '_').replace('.', '').replace('&', 'and')
+    company_id = request.company_name.lower().replace(' ', '_').replace('.', '').replace('&', 'and')
 
-        # Try to load structured payload from GCS
-        gcs_path = f"structured/payloads/{company_id}.json"
-        payload_json = load_from_gcs(gcs_path)
+    # Resolve through the shared loader so local development works without GCS.
+    # (This previously called load_from_gcs() directly, so a local run could never
+    # serve a structured dashboard.)
+    payload_json = load_structured_data(company_id)
 
-        if not payload_json:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Structured data not found for {request.company_name}"
+    if not payload_json:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Structured data not found for '{request.company_name}'. "
+                f"Looked for {company_id}.json in {describe_data_source()}."
             )
-
-        # Parse the payload
-        payload = json.loads(payload_json)
-
-        # Generate dashboard from structured data
-        dashboard = generate_structured_dashboard_from_payload(payload)
-
-        return DashboardResponse(
-            company_name=request.company_name,
-            pipeline="Structured",
-            dashboard=dashboard,
-            generated_at=datetime.now().isoformat()
         )
 
+    try:
+        payload = json.loads(payload_json)
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=500,
             detail=f"Invalid structured data format for {request.company_name}"
         )
+
+    try:
+        dashboard = generate_structured_dashboard_from_payload(payload)
     except Exception as e:
+        # Deliberately does not wrap HTTPException: the 404 above must stay a 404.
+        # The previous bare `except Exception` around the whole body re-raised it
+        # as a 500 with the 404 text embedded in the message.
         raise HTTPException(
             status_code=500,
             detail=f"Error generating structured dashboard: {str(e)}"
         )
 
+    return DashboardResponse(
+        company_name=request.company_name,
+        pipeline="Structured",
+        dashboard=dashboard,
+        generated_at=datetime.now().isoformat()
+    )
+
 def generate_structured_dashboard_from_payload(payload: Dict) -> str:
     """Generate dashboard markdown from structured payload aligned to required sections."""
-    company = payload.get('company', {}) or {}
+    # The Payload model (models.py) and payload_assembler.py both use "company_record".
+    # This previously read payload['company'], a key the assembler never writes, so every
+    # field in the rendered dashboard fell through to "Not disclosed" regardless of the
+    # data. "company" is still accepted as a fallback for any hand-written payloads.
+    company = payload.get('company_record') or payload.get('company') or {}
     events = payload.get('events', []) or []
     snapshots = payload.get('snapshots', []) or []
     snapshot = snapshots[0] if snapshots else {}

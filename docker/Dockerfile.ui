@@ -1,0 +1,33 @@
+# Streamlit frontend, for Cloud Run.
+#
+# Deliberately built from requirements-ui.txt rather than requirements.txt: the UI is
+# an HTTP client and needs no LLM, vector-store or scraping dependencies.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements-ui.txt /app/requirements-ui.txt
+RUN pip install --no-cache-dir -r requirements-ui.txt
+
+COPY src/frontend /app/src/frontend
+COPY src/__init__.py /app/src/__init__.py
+# The seed file backs the UI's degraded mode when the API is unreachable.
+COPY data/forbes_ai50_seed.json /app/data/forbes_ai50_seed.json
+
+# Cloud Run injects $PORT and expects the container to listen on it. Defaults to 8501
+# so the image still runs the same way locally.
+ENV PORT=8501
+EXPOSE 8501
+
+# Shell form, so ${PORT} is expanded at runtime and the line continuations are handled
+# by the shell rather than by the Dockerfile JSON parser.
+#
+# --server.enableCORS / enableXsrfProtection are disabled because Cloud Run terminates
+# TLS and proxies upstream; Streamlit's own checks reject the forwarded origin.
+CMD streamlit run src/frontend/streamlit_app.py \
+      --server.port=${PORT} \
+      --server.address=0.0.0.0 \
+      --server.headless=true \
+      --server.enableCORS=false \
+      --server.enableXsrfProtection=false \
+      --browser.gatherUsageStats=false

@@ -1,6 +1,9 @@
 WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR ASSIGNMENT AND ABIDE BY THE
 POLICIES LISTED IN THE STUDENT HANDBOOK
 
-member1: __%
-member2: __%
-member3: __%
+Hemanth Rayudu:   33.33%  — Structured pipeline, Airflow DAGs, GCP deployment
+PeiYing Chen:     33.33%  — RAG pipeline implementation
+Om Shailesh Raut: 33.33%  — Frontend & backend (FastAPI + Streamlit)
+
+Course:  DAMG7245 — Assignment 2
+Project: Case Study 2 — Project ORBIT (Part 1)

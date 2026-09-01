@@ -1,0 +1,6 @@
+# Files in the DAGs folder that must NOT be parsed as DAG files.
+#
+# ai50_common.py holds shared helpers and defines no DAG. Excluding it from parsing
+# avoids wasted DagBag work and documents the intent. It stays importable, because
+# Airflow adds the DAGs folder to sys.path.
+ai50_common.py

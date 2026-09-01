@@ -1,0 +1,48 @@
+# FastAPI backend, for Cloud Run.
+#
+# Two size decisions matter here, because the Artifact Registry always-free allowance
+# is 0.5 GB:
+#   1. torch is installed from PyPI's CPU-only index. The default wheels bundle CUDA
+#      libraries (~2 GB) for GPUs that Cloud Run does not offer.
+#   2. requirements-api.txt omits the scraping stack, which belongs to the scraper and
+#      extractor Cloud Run Jobs rather than to this service.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# CPU-only torch first, so the resolver does not later pull the CUDA build as a
+# transitive dependency of sentence-transformers.
+RUN pip install --no-cache-dir \
+      --index-url https://download.pytorch.org/whl/cpu \
+      torch==2.4.1
+
+COPY requirements-api.txt /app/requirements-api.txt
+RUN pip install --no-cache-dir -r requirements-api.txt
+
+COPY src/ /app/src/
+COPY data/forbes_ai50_seed.json /app/data/forbes_ai50_seed.json
+COPY src/prompts/ /app/src/prompts/
+
+# Pre-download the embedding model at build time so the first request does not pay for
+# it. Harmless if it fails (no network at build): it is fetched lazily at runtime.
+RUN python -c "\
+from sentence_transformers import SentenceTransformer; \
+SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')" \
+    || echo "embedding model not pre-cached; will download on first use"
+
+ENV PORT=8000 \
+    PYTHONUNBUFFERED=1 \
+    RAG_LLM_MODEL=gpt-4o-mini
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -fsS "http://localhost:${PORT}/" || exit 1
+
+# Single worker: Cloud Run scales by adding instances, and the RAG pipeline holds an
+# in-process embedding model, so extra workers would multiply memory for no gain.
+CMD ["sh", "-c", "exec uvicorn src.backend.api:app --host 0.0.0.0 --port ${PORT} --workers 1"]

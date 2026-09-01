@@ -84,8 +84,11 @@ class RAGPipeline:
         if not api_key:
             print("WARNING: OPENAI_API_KEY not found in environment")
         
+        # Model is env-driven so it can be changed without a code edit. The default is
+        # gpt-4o-mini: legacy "gpt-4" is an 8k-context model, and top_k=15 retrieved
+        # chunks plus the system prompt can exceed that window.
         self.llm = ChatOpenAI(
-            model_name="gpt-4",
+            model_name=os.getenv("RAG_LLM_MODEL", "gpt-4o-mini"),
             temperature=0.1,
             openai_api_key=api_key
         )
@@ -193,30 +196,32 @@ class RAGPipeline:
         if company_name:
             filter_dict['company'] = company_name
         
-        # Search
+        # Search. similarity_search_with_score is used so callers (e.g. GET /rag/search)
+        # can see retrieval quality, not just the matched text.
         try:
             if filter_dict:
-                results = self.vectorstore.similarity_search(
+                results = self.vectorstore.similarity_search_with_score(
                     query,
                     k=k,
                     filter=filter_dict
                 )
             else:
-                results = self.vectorstore.similarity_search(query, k=k)
+                results = self.vectorstore.similarity_search_with_score(query, k=k)
         except Exception as e:
             print(f"Search error: {e}")
             return []
-        
+
         # Format results
         formatted_results = []
-        for doc in results:
+        for doc, score in results:
             formatted_results.append({
                 'content': doc.page_content,
                 'metadata': doc.metadata,
                 'source': doc.metadata.get('source', 'unknown'),
-                'company': doc.metadata.get('company', 'unknown')
+                'company': doc.metadata.get('company', 'unknown'),
+                'score': float(score)
             })
-        
+
         return formatted_results
     
     def generate_dashboard(self, company_name: str, top_k: int = 15) -> str:
@@ -265,7 +270,7 @@ class RAGPipeline:
         
         # Format context for prompt
         context_text = "\n\n---\n\n".join([
-            f"Source: {item['metadata']['source']}\n{item['content']}"
+            f"Source: {item['metadata'].get('source', 'unknown')}\n{item['content']}"
             for item in unique_context[:top_k]
         ])
         

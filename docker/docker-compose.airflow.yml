@@ -1,0 +1,68 @@
+# Local Airflow for developing and demonstrating the ORBIT DAGs.
+#
+#   docker compose -f docker/docker-compose.airflow.yml up
+#
+# Airflow UI:   http://localhost:8080   (admin / admin)
+#
+# The whole repo is mounted at /opt/airflow/repo so the DAGs' local seed-file
+# fallback resolves; in production the seed is read from GCS instead. Only
+# airflow/dags/ is exposed as the DAGs folder, matching what setup_composer.sh
+# uploads to Cloud Composer - so a DAG that imports src/backend will fail here
+# exactly as it would in Composer.
+#
+# Triggering the DAGs:
+#   docker compose -f docker/docker-compose.airflow.yml exec airflow \
+#     airflow dags trigger ai50_full_ingest_dag
+#   docker compose -f docker/docker-compose.airflow.yml exec airflow \
+#     airflow dags trigger ai50_daily_refresh_dag
+#
+# Checking for import errors (this is the gate that matters):
+#   docker compose -f docker/docker-compose.airflow.yml exec airflow \
+#     airflow dags list-import-errors
+
+services:
+  airflow:
+    image: apache/airflow:2.9.3-python3.11
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+      # Cloud Run operators need these to resolve; they are only used when a task
+      # actually executes against GCP.
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID:-gen-lang-client-0653324487}
+      GCP_REGION: ${GCP_REGION:-us-central1}
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags:ro
+      - ..:/opt/airflow/repo:ro
+      - airflow-logs:/opt/airflow/logs
+    working_dir: /opt/airflow/repo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: standalone
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - airflow-db:/var/lib/postgresql/data
+
+volumes:
+  airflow-db:
+  airflow-logs:

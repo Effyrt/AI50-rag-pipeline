@@ -1,0 +1,21 @@
+steps:
+  # Build the FastAPI backend image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/ai50-api:latest'
+      - '-f'
+      - 'docker/Dockerfile.api'
+      - '.'
+    timeout: 1800s
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/ai50-api:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/ai50-api:latest'
+
+timeout: 2400s
